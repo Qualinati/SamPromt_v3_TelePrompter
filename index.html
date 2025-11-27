@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SamPrompt V19 (Flow State)</title>
+    <title>SamPrompt V20 (Stability)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Roboto+Slab:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script>
@@ -17,9 +17,9 @@
                         mono: ['JetBrains Mono', 'monospace'] 
                     },
                     colors: {
-                        accent: { DEFAULT: '#F59E0B', dark: '#D97706' }, // Amber Focus
-                        darkbg: '#050505', 
-                        panel: '#101010', 
+                        accent: { DEFAULT: '#F59E0B', dark: '#D97706' }, // Amber
+                        darkbg: '#000000', // Zifiri Siyah
+                        panel: '#111111', 
                     }
                 }
             }
@@ -30,11 +30,12 @@
             --prompter-font-size: 5rem; 
             --prompter-width: 80%; 
             --prompter-weight: 700;
+            --prompter-line-height: 1.4;
             --focus-height: 220px; 
         }
 
-        /* --- UI RESET --- */
-        body { overflow: hidden; }
+        /* UI RESET */
+        body { overflow: hidden; background-color: #000; }
         input[type=range] { -webkit-appearance: none; background: transparent; cursor: pointer; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #F59E0B; margin-top: -6px; box-shadow: 0 0 10px rgba(245,158,11,0.6);
@@ -43,61 +44,55 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- PROMPTER VIEW --- */
+        /* PROMPTER VIEW */
         #prompter-view { display: none; position: fixed; inset: 0; z-index: 50; background: black; }
 
         #prompter-text-container {
             height: 100vh;
-            overflow-y: hidden; /* Scroll'u JS ile yapacağız (Transform Translate) daha smooth olması için */
-            position: relative;
-        }
-        
-        #scrolling-content {
-            padding-top: 50vh;
+            overflow-y: auto; /* Manuel scroll */
+            padding-top: calc(50vh - var(--focus-height) / 2);
             padding-bottom: 50vh;
             max-width: var(--prompter-width); 
             margin: 0 auto;
             text-align: center;
-            /* Donanım hızlandırma için */
-            transform: translateY(0); 
-            will-change: transform; 
+            will-change: scrollTop;
         }
         
         .prompter-word {
             display: inline-block;
             color: #ffffff; 
             opacity: 0.15; /* Focus Lock: Silik */
-            filter: blur(2.5px); /* Focus Lock: Flu */
-            transition: opacity 0.4s ease, filter 0.4s ease, color 0.2s;
+            filter: blur(2px); /* Focus Lock: Flu */
+            transition: opacity 0.2s ease, filter 0.2s ease;
             margin-right: 0.25em; margin-bottom: 0.4em;
             font-size: var(--prompter-font-size);
             font-weight: var(--prompter-weight);
-            line-height: 1.4;
+            line-height: var(--prompter-line-height);
         }
 
-        /* ODAK ALANINDAKİ METİN (Netleşir) */
+        /* ODAK ALANI (NET) */
         .in-focus-zone {
             opacity: 1 !important;
             filter: blur(0) !important;
         }
 
-        /* SESLİ MOD: Aktif Kelime */
+        /* SESLİ MOD: AKTİF KELİME */
         .voice-active {
             color: #F59E0B !important; 
-            text-shadow: 0 0 40px rgba(245, 158, 11, 0.8);
+            text-shadow: 0 0 40px rgba(245, 158, 11, 0.9);
             transform: scale(1.1);
             z-index: 10; position: relative;
-            transition: transform 0.3s ease;
+            transition: transform 0.2s ease;
         }
 
-        /* --- ODAK BANDI --- */
+        /* ODAK BANDI */
         .focus-band {
             position: fixed; top: 50%; left: 0; right: 0;
             transform: translateY(-50%);
             height: var(--focus-height);
-            border-top: 2px solid rgba(245, 158, 11, 0.3);
-            border-bottom: 2px solid rgba(245, 158, 11, 0.3);
-            background: linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.02) 20%, rgba(245,158,11,0.02) 80%, transparent 100%);
+            border-top: 2px solid rgba(245, 158, 11, 0.4);
+            border-bottom: 2px solid rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.02);
             pointer-events: none; z-index: 40;
             transition: height 0.1s ease;
         }
@@ -116,16 +111,14 @@
 
     <header class="bg-[#050505] border-b border-white/10 px-6 py-4 shadow-xl z-40 flex items-center justify-between shrink-0 h-20">
         <div class="flex items-center gap-5">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-white/5 to-white/10 border border-white/10 backdrop-blur-md flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.15)] relative overflow-hidden group">
-                <div class="absolute inset-0 bg-accent/20 blur-xl group-hover:bg-accent/30 transition duration-500"></div>
-                <span class="font-black text-2xl text-accent relative z-10 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">S</span>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-white/5 to-white/10 border border-white/10 backdrop-blur-md flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.15)] relative overflow-hidden">
+                <span class="font-black text-2xl text-accent">S</span>
             </div>
-            
             <div class="flex flex-col justify-center">
                 <h1 class="text-xl font-bold text-white leading-tight tracking-wide">SamPrompt</h1>
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-[0.6rem] bg-white/5 text-gray-400 px-1.5 rounded tracking-wider border border-white/5">TELEPROMPTER</span>
-                    <span class="text-[0.6rem] text-accent font-bold tracking-widest uppercase">FLOW EDITION</span>
+                    <span class="text-[0.6rem] text-accent font-bold tracking-widest uppercase">V20 STABLE</span>
                 </div>
             </div>
         </div>
@@ -138,14 +131,14 @@
         </div>
     </header>
 
-    <main class="flex-1 w-full h-full overflow-hidden bg-[#080808] relative flex justify-center p-4 md:p-6">
+    <main class="flex-1 w-full h-[calc(100vh-5rem)] overflow-hidden bg-[#080808] relative flex justify-center p-4 md:p-6">
         
         <div class="w-full max-w-[95%] flex flex-col bg-[#050505] border border-white/10 rounded-xl shadow-2xl overflow-hidden h-full">
             
             <div class="bg-[#121212] border-b border-white/5 p-2 flex items-center justify-between px-4 h-14 shrink-0 gap-4">
                 
                 <div class="flex gap-3 items-center">
-                    <button onclick="manualSave()" class="p-2 text-gray-400 hover:text-accent hover:bg-white/5 rounded transition tooltip-trigger" title="Kaydet">
+                    <button onclick="manualSave()" class="p-2 text-gray-400 hover:text-accent hover:bg-white/5 rounded transition" title="Kaydet">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
                     </button>
                     <span id="save-msg" class="text-[0.6rem] text-accent opacity-0 transition-opacity font-bold uppercase">Kaydedildi</span>
@@ -159,7 +152,11 @@
                     </select>
                     
                     <div class="relative group">
-                        <input type="text" id="search-box" placeholder="Metinde ara..." onkeyup="searchEditor(this.value)" onkeydown="event.stopPropagation()" class="bg-black/30 border border-white/10 rounded-full text-xs text-white pl-8 pr-3 py-1.5 w-32 focus:w-48 transition-all outline-none focus:border-accent/50 focus:bg-black/50">
+                        <input type="text" id="search-box" placeholder="Metinde ara..." 
+                               onkeyup="searchEditor(this.value)" 
+                               onfocus="state.isSearching = true" 
+                               onblur="state.isSearching = false"
+                               class="bg-black/30 border border-white/10 rounded-full text-xs text-white pl-8 pr-3 py-1.5 w-32 focus:w-48 transition-all outline-none focus:border-accent/50 focus:bg-black/50">
                         <svg class="w-3 h-3 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                 </div>
@@ -169,9 +166,9 @@
                 </div>
             </div>
 
-            <textarea id="source-text" class="flex-1 w-full bg-[#030303] p-8 outline-none resize-none text-xl md:text-2xl text-gray-200 font-sans leading-relaxed placeholder-gray-700 focus:bg-black transition" spellcheck="false"></textarea>
+            <textarea id="source-text" class="flex-1 w-full h-full bg-[#030303] p-8 pb-32 outline-none resize-none text-xl md:text-2xl text-gray-200 font-sans leading-relaxed placeholder-gray-700 focus:bg-black transition" spellcheck="false"></textarea>
             
-            <div class="bg-[#121212] border-t border-white/5 p-4 flex justify-end shrink-0">
+            <div class="bg-[#121212] border-t border-white/5 p-4 flex justify-end shrink-0 relative z-20">
                 <button onclick="startPrompter()" class="group bg-accent hover:bg-yellow-400 text-black font-extrabold text-lg px-12 py-3 rounded-lg shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:scale-105 transition transform flex items-center gap-3 ring-1 ring-white/20">
                     <span class="bg-black/10 p-1.5 rounded-full"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
                     PROMPT IT!
@@ -182,7 +179,7 @@
 
     <section id="prompter-view">
         
-        <div class="fixed top-0 left-0 right-0 h-4 z-[70] hover:bg-accent/10 cursor-pointer flex justify-center items-start transition-colors group" onclick="toggleTopBar()">
+        <div class="fixed top-0 left-0 right-0 h-6 z-[70] hover:bg-accent/10 cursor-pointer flex justify-center items-start transition-colors group" onclick="toggleTopBar()">
             <div class="bg-accent/20 px-6 rounded-b-lg border-b border-r border-l border-accent/20 backdrop-blur group-hover:bg-accent/40 transition">
                 <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
@@ -194,6 +191,10 @@
                     <div class="flex flex-col gap-1 w-28">
                         <label class="flex justify-between text-[0.6rem] font-bold text-gray-400 uppercase">Boyut <span id="font-val" class="text-white">5.0</span></label>
                         <input type="range" min="3" max="12" step="0.5" value="5.0" oninput="updateFont(this.value)">
+                    </div>
+                    <div class="flex flex-col gap-1 w-28">
+                        <label class="flex justify-between text-[0.6rem] font-bold text-gray-400 uppercase">Aralık <span id="line-val" class="text-white">1.4</span></label>
+                        <input type="range" min="1.0" max="2.5" step="0.1" value="1.4" oninput="updateLineHeight(this.value)">
                     </div>
                     <div class="flex flex-col gap-1 w-28">
                         <label class="flex justify-between text-[0.6rem] font-bold text-gray-400 uppercase">Genişlik <span id="width-val" class="text-white">80%</span></label>
@@ -222,10 +223,8 @@
             <div class="text-[0.65rem] font-bold text-gray-500 mt-1 uppercase tracking-widest bg-black/50 px-2 py-1 rounded inline-block backdrop-blur" id="mode-indicator">HAZIR</div>
         </div>
 
-        <div id="prompter-text-container">
-            <div id="scrolling-content">
-                </div>
-        </div>
+        <div id="prompter-text-container" class="no-scrollbar select-none">
+            </div>
 
         <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-6 z-50 bg-[#111]/90 px-8 py-3 rounded-full border border-white/10 backdrop-blur shadow-2xl" onclick="event.stopPropagation()">
             <button onclick="stopPrompter()" class="text-gray-400 hover:text-red-500 p-2 transition" title="Çıkış (ESC)"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -263,8 +262,8 @@
     </div>
 
     <script>
-        // === STORAGE & CONSTANTS ===
-        const STORAGE_KEY = 'samPrompt_V19_Content';
+        // === SABİT METİN (LC WAIKIKI) ===
+        const STORAGE_KEY = 'samPrompt_V20_Content';
         const DEFAULT_TEXT = `SamPrompt Teleprompter’a hoş geldin!
 Bir hikâye anlatmaya hazır mısın?
 
@@ -301,7 +300,7 @@ Bir hikâye anlatmaya hazır mısın?
         const els = {
             source: document.getElementById('source-text'),
             prompterView: document.getElementById('prompter-view'),
-            scrollingContent: document.getElementById('scrolling-content'),
+            container: document.getElementById('prompter-text-container'),
             topBar: document.getElementById('top-bar'),
             hudTimer: document.getElementById('hud-timer'),
             modeIndicator: document.getElementById('mode-indicator'),
@@ -317,13 +316,12 @@ Bir hikâye anlatmaya hazır mısın?
 
         // === STATE ===
         let state = {
-            isPlaying: false, scrollSpeed: 0,
+            isPlaying: false, scrollSpeed: 0, scrollAccumulator: 0,
             isVoiceMode: false, recognition: null,
             words: [], cleanText: [], currentIndex: 0,
             timerInterval: null, startTime: null, elapsedTime: 0,
             childWindow: null, isMirrored: false, isTopBarVisible: false,
-            // FLOW ENGINE VARS
-            currentY: 0, targetY: 0
+            isSearching: false
         };
 
         // === INIT ===
@@ -337,10 +335,7 @@ Bir hikâye anlatmaya hazır mısın?
             }
             updateWordCount();
         });
-        els.source.addEventListener('input', () => {
-            // Auto-save logic removed from input for performance, manual save added
-            updateWordCount();
-        });
+        els.source.addEventListener('input', () => { updateWordCount(); });
         function updateWordCount() {
             document.getElementById('word-count').textContent = `${els.source.value.trim().split(/\s+/).length} Kelime`;
         }
@@ -363,18 +358,25 @@ Bir hikâye anlatmaya hazır mısın?
         // === AYARLAR ===
         function updateFont(val) { setCssVar('--prompter-font-size', `${val}rem`); setText('font-val', parseFloat(val).toFixed(1)); }
         function updateWidth(val) { setCssVar('--prompter-width', `${val}%`); setText('width-val', `${val}%`); }
-        function updateFocusHeight(val) { setCssVar('--focus-height', `${val}px`); setText('focus-val', `${val}px`); }
+        function updateFocusHeight(val) { setCssVar('--focus-height', `${val}px`); setText('focus-val', `${val}px`); updatePadding(); }
+        function updateLineHeight(val) { setCssVar('--prompter-line-height', val); setText('line-val', val); }
         function setCssVar(name, val) { 
             document.documentElement.style.setProperty(name, val); 
             if(state.childWindow) state.childWindow.document.documentElement.style.setProperty(name, val);
         }
         function setText(id, val) { document.getElementById(id).textContent = val; }
+        function updatePadding() {
+            const h = getComputedStyle(document.documentElement).getPropertyValue('--focus-height');
+            const pt = `calc(50vh - ${parseInt(h)/2}px)`;
+            els.container.style.paddingTop = pt;
+            if(state.childWindow) state.childWindow.document.getElementById('prompter-text-container').style.paddingTop = pt;
+        }
         function toggleMirror() {
             state.isMirrored = !state.isMirrored;
             const cls = state.isMirrored ? 'mirror-x' : '';
-            els.scrollingContent.className = cls;
+            els.container.className = `no-scrollbar select-none ${cls}`;
             document.getElementById('mirror-btn').textContent = state.isMirrored ? "Ayna: AÇIK" : "Ayna: Normal";
-            if(state.childWindow) state.childWindow.document.getElementById('scrolling-content').className = cls;
+            if(state.childWindow) state.childWindow.document.getElementById('prompter-text-container').className = els.container.className;
         }
         function toggleTopBar() {
             state.isTopBarVisible = !state.isTopBarVisible;
@@ -386,26 +388,26 @@ Bir hikâye anlatmaya hazır mısın?
             const text = els.source.value.trim();
             if(!text) return alert("Lütfen metin girin!");
             
-            els.scrollingContent.innerHTML = ''; state.words = []; state.cleanText = [];
+            els.container.innerHTML = ''; state.words = []; state.cleanText = [];
             
             text.split(/\s+/).forEach(raw => {
                 const span = document.createElement('span');
                 span.textContent = raw + ' ';
                 span.className = 'prompter-word';
-                els.scrollingContent.appendChild(span);
+                els.container.appendChild(span);
                 state.words.push(span);
                 state.cleanText.push(raw.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()"']/g,""));
             });
 
             els.prompterView.style.display = 'block';
-            resetTimer(); 
+            resetTimer(); updatePadding();
             if(state.childWindow && !state.childWindow.closed) syncChildContent();
             
-            // RESET FLOW
-            state.currentY = 0; state.targetY = 0; state.scrollSpeed = 0;
-            els.scrollingContent.style.transform = `translateY(0px)`;
-
-            requestAnimationFrame(flowLoop);
+            // RESET SCROLL
+            els.container.scrollTop = 0;
+            state.scrollSpeed = 0;
+            
+            requestAnimationFrame(scrollLoop);
             checkFocusLock();
         }
 
@@ -417,76 +419,48 @@ Bir hikâye anlatmaya hazır mısın?
         }
 
         function resetPrompter() {
-            state.currentY = 0; state.targetY = 0; state.scrollSpeed = 0; state.isPlaying = false;
-            els.scrollingContent.style.transform = `translateY(0px)`;
+            els.container.scrollTop = 0; state.scrollSpeed = 0; state.isPlaying = false;
             document.querySelectorAll('.voice-active').forEach(el => el.classList.remove('voice-active'));
             updatePlayBtn(); resetTimer();
-            if(state.childWindow) state.childWindow.document.getElementById('scrolling-content').style.transform = `translateY(0px)`;
+            if(state.childWindow) state.childWindow.document.getElementById('prompter-text-container').scrollTop = 0;
         }
 
-        // === FLOW ENGINE (V19 PHYSICS) ===
-        // Bu motor, kaydırmayı "Transform" ile yapar, scrollTop ile değil. Çok daha akıcıdır.
-        function flowLoop() {
+        // === SCROLL ENGINE (PURE MATH) ===
+        function scrollLoop() {
             if(els.prompterView.style.display === 'none') return;
 
-            // 1. MANUEL MOD (SÜREKLİ HIZ)
+            // Manuel Mod: Sabit Hız (Piksel/Frame)
             if(!state.isVoiceMode && state.isPlaying && state.scrollSpeed !== 0) {
-                // Hızı pozisyona ekle
-                state.targetY += state.scrollSpeed * 2; // Hız çarpanı
-            }
-
-            // 2. SMOOTH LERP (YUMUŞAK GEÇİŞ)
-            // Mevcut pozisyonu hedefe yaklaştır
-            // Eksi yönde gidiyoruz (Yazı yukarı kaymalı -> Y azalmalı)
-            // Ama biz "Okunan kelimeyi merkeze" getirmeye çalışıyoruz.
-            // Metin yukarı kaydıkça, transform Y değeri negatif artar.
-            
-            // Ses modunda targetY hesaplanır (Kelime konumu).
-            // Manuel modda targetY sürekli artar/azalır.
-            
-            const diff = state.targetY - state.currentY;
-            
-            if(Math.abs(diff) > 0.1) {
-                // Ses modunda daha yumuşak (0.05), manuelde daha hızlı tepki (0.1)
-                const factor = state.isVoiceMode ? 0.04 : 0.2; 
-                state.currentY += diff * factor;
-            }
-
-            // Transform uygula (Negatif, çünkü metin yukarı gitmeli)
-            const transformVal = `translateY(-${state.currentY}px)`;
-            els.scrollingContent.style.transform = transformVal;
-            
-            if(state.childWindow && !state.childWindow.closed) {
-                state.childWindow.document.getElementById('scrolling-content').style.transform = transformVal;
+                // Sub-pixel accumulation logic isn't needed for scrollTop, basic float add works
+                els.container.scrollTop += state.scrollSpeed;
+                if(state.childWindow) state.childWindow.document.getElementById('prompter-text-container').scrollTop = els.container.scrollTop;
             }
 
             checkFocusLock();
-            requestAnimationFrame(flowLoop);
+            requestAnimationFrame(scrollLoop);
         }
 
         // === FOCUS LOCK ===
         function checkFocusLock() {
-            // Ekranın ortası (piksel)
-            // Metin yukarı kaydıkça, elementlerin "getBoundingClientRect().top" değeri değişir.
-            const viewportCenter = window.innerHeight / 2;
+            const center = els.container.scrollTop + (window.innerHeight / 2);
             const focusH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--focus-height'));
             
-            // Sadece ekranda görünür olanları kontrol et (Optimization)
-            // Basit döngü:
-            for(let span of state.words) {
-                const rect = span.getBoundingClientRect();
-                if(rect.top > 0 && rect.top < window.innerHeight) {
-                    const centerDist = Math.abs((rect.top + rect.height/2) - viewportCenter);
-                    if(centerDist < focusH/2) {
-                        span.classList.add('in-focus-zone');
-                    } else {
-                        span.classList.remove('in-focus-zone');
-                    }
+            // Optimization: Sadece viewport içindeki elemanları tara
+            const spans = document.getElementsByClassName('prompter-word');
+            const viewTop = els.container.scrollTop;
+            const viewBottom = viewTop + window.innerHeight;
+
+            for(let span of spans) {
+                if(span.offsetTop > viewTop && span.offsetTop < viewBottom) {
+                    const elCenter = span.offsetTop + (span.offsetHeight/2);
+                    const dist = Math.abs(elCenter - center);
+                    if(dist < (focusH / 2)) span.classList.add('in-focus-zone');
+                    else span.classList.remove('in-focus-zone');
                 }
             }
         }
 
-        // === VOICE ENGINE (FLOW STATE) ===
+        // === VOICE ENGINE (SIMPLE SCROLL TO) ===
         function toggleMicrophone() {
             if(!state.recognition) initSpeech();
             state.isVoiceMode = !state.isVoiceMode;
@@ -495,11 +469,8 @@ Bir hikâye anlatmaya hazır mısın?
                 state.isPlaying = false; updatePlayBtn();
                 try { state.recognition.start(); } catch(e){}
                 updateMicUI(true);
-                updateModeText("AKIŞKAN SES MODU");
+                updateModeText("SESLİ TAKİP MODU");
                 startTimerLogic();
-                
-                // Hedefi mevcut konuma eşitle (Sıçrama olmasın)
-                state.targetY = state.currentY;
             } else {
                 state.recognition.stop();
                 updateMicUI(false);
@@ -534,26 +505,28 @@ Bir hikâye anlatmaya hazır mısın?
             
             for(let i = searchStart; i < searchLimit; i++) {
                 if(state.cleanText[i] === lastWord) {
-                    setFlowTarget(i);
+                    highlightWord(i);
                     state.currentIndex = i + 1;
                     return; 
                 }
             }
         }
 
-        function setFlowTarget(index) {
+        function highlightWord(index) {
             document.querySelectorAll('.voice-active').forEach(el => el.classList.remove('voice-active'));
             if(state.words[index]) {
                 const el = state.words[index];
                 el.classList.add('voice-active');
                 
-                // HEDEF HESAPLAMA (FLOW)
-                // Elementin konteyner içindeki ofsetini (offsetTop) al.
-                // Bu ofset, transform:translateY(0) olduğundaki konumdur.
-                // Biz bu noktayı ekranın ortasına getirmek istiyoruz.
-                // Yani: currentY (kaydırma miktarı) = elementTop
+                // SMOOTH SCROLL (Native Browser Behavior)
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
-                state.targetY = el.offsetTop;
+                if(state.childWindow) {
+                    // Sync child slightly delayed to match smooth scroll
+                    setTimeout(() => {
+                        state.childWindow.document.getElementById('prompter-text-container').scrollTop = els.container.scrollTop;
+                    }, 100);
+                }
             }
         }
 
@@ -561,21 +534,15 @@ Bir hikâye anlatmaya hazır mısın?
         function toggleManualPlay() {
             if(state.isVoiceMode) toggleMicrophone();
             state.isPlaying = !state.isPlaying;
-            if(state.isPlaying && state.scrollSpeed === 0) state.scrollSpeed = 1; 
+            if(state.isPlaying && state.scrollSpeed === 0) state.scrollSpeed = 0.5; // Start slow
             updatePlayBtn();
             if(state.isPlaying) startTimerLogic(); else stopTimerLogic();
-            updateModeText(state.isPlaying ? `OTOMATİK HIZ` : "DURAKLATILDI");
-        }
-        function toggleManualPlayClick() {
-            if(els.prompterView.style.display === 'none') return;
-            toggleManualPlay();
+            updateModeText(state.isPlaying ? `HIZ: ${state.scrollSpeed.toFixed(1)}` : "DURAKLATILDI");
         }
         function changeSpeed(delta) {
             if(state.isVoiceMode) return; 
             state.scrollSpeed += delta;
             state.isPlaying = state.scrollSpeed !== 0;
-            // Manuel modda targetY göreceli artar, o yüzden resetlemeye gerek yok
-            
             if(state.isPlaying) startTimerLogic(); else stopTimerLogic();
             updatePlayBtn();
             updateModeText(`HIZ: ${state.scrollSpeed.toFixed(1)}`);
@@ -608,23 +575,23 @@ Bir hikâye anlatmaya hazır mısın?
         function openDualScreen() {
             state.childWindow = window.open("", "PrompterChild", "width=800,height=600");
             if (!state.childWindow) return alert("Pop-up izni verin!");
-            
             const styles = document.getElementsByTagName('style')[0].innerHTML;
             const tailwind = document.querySelector('script[src*="tailwindcss"]').outerHTML;
-            state.childWindow.document.write(`<html><head>${tailwind}<style>${styles} body{background:black;overflow:hidden;} #scrolling-content{padding-top:50vh;}</style></head><body><div id="prompter-text-container"><div id="scrolling-content"></div></div></body></html>`);
+            state.childWindow.document.write(`<html><head>${tailwind}<style>${styles} body{background:black;overflow:hidden;} #prompter-text-container{padding-bottom:50vh;}</style></head><body><div id="prompter-text-container" class="${els.container.className}"></div></body></html>`);
             state.childWindow.document.close();
             setTimeout(syncChildContent, 500);
         }
         function syncChildContent() { 
             if(state.childWindow && !state.childWindow.closed) {
-                state.childWindow.document.getElementById('scrolling-content').innerHTML = els.scrollingContent.innerHTML;
+                state.childWindow.document.getElementById('prompter-text-container').innerHTML = els.container.innerHTML;
+                updatePadding();
             }
         }
 
-        // === INPUTS ===
+        // === MOUSE WHEEL CONTROL ===
         window.addEventListener('wheel', (e) => {
             if(els.prompterView.style.display === 'none' || state.isVoiceMode) return;
-            const sensitivity = 0.5;
+            const sensitivity = 0.1; // Çok hassas kontrol
             if(e.deltaY > 0) state.scrollSpeed += sensitivity; 
             else state.scrollSpeed -= sensitivity;
             state.isPlaying = state.scrollSpeed !== 0;
@@ -634,12 +601,25 @@ Bir hikâye anlatmaya hazır mısın?
         });
 
         document.addEventListener('keydown', (e) => {
+            if(state.isSearching) return; // Arama yaparken kısayolları durdur
+
             if (els.prompterView.style.display === 'none') return;
             
-            if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); changeSpeed(0.5); }
-            if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); changeSpeed(-0.5); }
+            if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); changeSpeed(0.2); }
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); changeSpeed(-0.2); }
             if (e.code === 'Enter') { e.preventDefault(); toggleManualPlay(); }
             if (e.code === 'Space') { e.preventDefault(); toggleMicrophone(); }
+            
+            // Focus +/- (Numpad ve Normal)
+            if (e.key === '+' || e.code === 'NumpadAdd') { 
+                let h = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--focus-height')) + 20;
+                document.querySelector('input[oninput="updateFocusHeight(this.value)"]').value = h; updateFocusHeight(h);
+            }
+            if (e.key === '-' || e.code === 'NumpadSubtract') { 
+                let h = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--focus-height')) - 20;
+                document.querySelector('input[oninput="updateFocusHeight(this.value)"]').value = h; updateFocusHeight(h);
+            }
+
             if (e.code === 'Escape') stopPrompter();
         });
     </script>
