@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teleprompter Pro V4 (Ultimate)</title>
+    <title>Teleprompter Pro V5 (Gold Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -14,7 +14,7 @@
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         accent: { DEFAULT: '#3B82F6', dark: '#2563EB' },
-                        darkbg: '#0F172A',
+                        darkbg: '#0B1120', // Daha derin siyah
                         surface: '#1E293B'
                     }
                 }
@@ -22,82 +22,140 @@
         }
     </script>
     <style>
+        :root {
+            --prompter-font-size: 4rem; /* Başlangıç font boyutu */
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
         #prompter-text-container {
             scroll-behavior: smooth;
-            height: 70vh;
+            height: 75vh;
             overflow-y: auto;
             padding-top: 40vh;
             padding-bottom: 50vh;
-            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+            /* Daha yumuşak maskeleme */
+            mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
         }
-        .highlighted-word {
-            color: #60A5FA; /* Daha parlak mavi */
-            text-shadow: 0 0 30px rgba(59, 130, 246, 1);
-            transform: scale(1.2);
-            font-weight: 800;
+        
+        /* Normal kelimeler */
+        .prompter-word {
             display: inline-block;
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.4;
+            transition: all 0.2s ease-out;
+            margin-right: 0.3em; /* Doğal boşluk */
+            margin-bottom: 0.5em;
+            font-size: var(--prompter-font-size);
         }
+
+        /* Okunan kelime (Daha yumuşak vurgu) */
+        .highlighted-word {
+            color: #E2E8F0; /* Göz yormayan buz beyazı */
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.7); /* Daha az parlama */
+            transform: scale(1.1);
+            font-weight: 800;
+            opacity: 1 !important;
+        }
+
+        /* Okunmuş kelimeler */
+        .read-word {
+            opacity: 0.15;
+            filter: blur(1px);
+        }
+        
         .glass {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 23, 42, 0.90);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        /* Ayna Modu */
+        .mirror { transform: scaleX(-1); }
     </style>
 </head>
 <body class="bg-darkbg text-gray-200 font-sans min-h-screen overflow-hidden relative selection:bg-accent selection:text-white">
 
-    <nav class="flex justify-between items-center p-6 relative z-20">
-        <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
-            Teleprompter Pro <span class="text-xs bg-red-600 text-white px-2 py-1 rounded ml-2 align-middle">V4 Final</span>
+    <nav class="flex justify-between items-center p-6 relative z-20 border-b border-white/5 bg-darkbg/50 backdrop-blur-md">
+        <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500">
+            Teleprompter Pro <span class="text-xs bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-2 py-0.5 rounded-full ml-2 align-middle tracking-wider font-bold shadow-sm">GOLD V5</span>
         </h1>
-        <button onclick="window.location.reload()" class="text-sm text-gray-400 hover:text-white transition flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            Yenile
-        </button>
+        <div class="flex items-center gap-4">
+             <span class="text-xs text-gray-500 hidden md:block">Boşluk: Mikrofon | Yön Tuşları: Manuel</span>
+            <button onclick="window.location.reload()" class="text-sm text-gray-400 hover:text-white transition flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+        </div>
     </nav>
 
     <main class="container mx-auto px-4 relative z-10 h-full flex flex-col items-center justify-center">
-        <section id="editor-mode" class="w-full max-w-4xl transition-all duration-500">
-            <div class="glass rounded-2xl p-6 md:p-8 shadow-2xl border-t border-white/10">
-                <div class="mb-4 flex justify-between items-center">
-                    <label class="text-gray-400 text-sm font-semibold uppercase tracking-wider">Okunacak Metin</label>
+        <section id="editor-mode" class="w-full max-w-4xl transition-all duration-500 py-10">
+            <div class="glass rounded-3xl p-8 shadow-2xl border-t border-white/10 relative overflow-hidden">
+                <div class="absolute -top-20 -right-20 w-60 h-60 bg-accent/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="mb-4 flex justify-between items-center relative z-10">
+                    <label class="text-gray-300 text-lg font-bold flex items-center">
+                         📝 Okunacak Metin
+                    </label>
+                    <span id="save-status" class="text-xs text-accent font-medium transition-opacity opacity-0">Kaydedildi ✓</span>
                 </div>
-                <textarea id="source-text" class="w-full h-80 bg-darkbg/60 p-5 rounded-xl border border-gray-700/50 outline-none resize-none text-lg text-gray-200 focus:border-accent focus:ring-1 focus:ring-accent transition" placeholder="Metnini buraya yapıştır..."></textarea>
-                <div class="flex justify-center mt-6">
-                    <button onclick="startPrompter()" class="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full font-bold shadow-lg shadow-blue-900/50 transition-all transform hover:scale-[1.02] active:scale-95">
-                        Sunumu Başlat
+                <textarea id="source-text" class="w-full h-[50vh] bg-darkbg/80 p-6 rounded-2xl border border-gray-700/50 outline-none resize-none text-xl text-gray-200 focus:border-accent/50 focus:ring-2 focus:ring-accent/20 transition shadow-inner leading-relaxed relative z-10 placeholder-gray-600" placeholder="Metnini buraya yapıştır kral..."></textarea>
+                <div class="flex justify-center mt-8 relative z-10">
+                    <button onclick="startPrompter()" class="group relative px-12 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-bold shadow-lg shadow-blue-900/30 transition-all transform hover:scale-[1.02] active:scale-95 overflow-hidden">
+                        <span class="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out"></span>
+                        <span class="relative flex items-center gap-2 text-lg">
+                            🚀 Sunumu Başlat
+                        </span>
                     </button>
                 </div>
+                 <p class="text-center text-gray-500 text-sm mt-4 relative z-10">Merak etme, metnin tarayıcı hafızasına otomatik kaydediliyor.</p>
             </div>
         </section>
 
-        <section id="prompter-mode" class="hidden w-full max-w-6xl relative h-screen flex flex-col">
-            <div id="prompter-text-container" class="no-scrollbar text-4xl md:text-6xl font-bold text-center leading-snug text-gray-600 select-none px-4 md:px-20 tracking-tight transition-all"></div>
+        <section id="prompter-mode" class="hidden w-full max-w-7xl relative h-screen flex flex-col">
+            <div id="prompter-text-container" class="no-scrollbar font-bold text-center leading-snug text-gray-500 select-none px-4 md:px-10 tracking-tight transition-transform duration-300"></div>
 
-            <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 w-full max-w-xl px-6 z-50 flex flex-col items-center gap-4">
+            <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 z-50 flex flex-col items-center gap-3">
                 
-                <div id="status-bubble" class="px-4 py-1.5 rounded-full bg-black/80 backdrop-blur text-xs font-mono text-gray-400 transition-colors duration-300 border border-white/10 shadow-lg text-center min-w-[200px]">
-                    Hazır
+                <div id="status-bubble" class="px-4 py-2 rounded-full bg-black/80 backdrop-blur-xl text-xs font-mono text-gray-400 transition-colors duration-300 border border-white/10 shadow-xl text-center min-w-[220px]">
+                    Hazır. Başlamak için mikrofona tıkla veya BOŞLUK tuşuna bas.
                 </div>
 
-                <div class="glass rounded-full p-2.5 flex items-center gap-6 shadow-2xl bg-gray-900/95 border border-white/10">
-                    <button onclick="stopPrompter()" class="p-4 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition" title="Düzenle">
+                <div class="glass p-2 rounded-[2rem] flex items-center gap-4 shadow-2xl bg-gray-900/95 border border-white/10 relative">
+                    
+                    <button onclick="stopPrompter()" class="p-4 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition tooltip-trigger" title="Metni Düzenle">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
                     </button>
                     
-                    <button id="mic-btn" onclick="toggleMicrophone()" class="relative p-6 bg-accent rounded-full text-white shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 active:scale-95 group">
+                    <button id="mic-btn" onclick="toggleMicrophone()" class="relative p-6 bg-accent rounded-full text-white shadow-lg shadow-blue-500/40 transition-all transform hover:scale-105 active:scale-95 group">
                         <span id="mic-pulse" class="absolute inset-0 rounded-full bg-white opacity-0 transition-opacity duration-1000"></span>
-                        <svg id="mic-icon" class="w-8 h-8 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        <svg id="mic-icon" class="w-9 h-9 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
                     </button>
 
-                    <button onclick="resetReadingPos()" class="p-4 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition" title="Başa Sar">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <button onclick="toggleSettings()" class="p-4 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition relative" title="Ayarlar">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                         <span class="absolute top-3 right-3 w-2 h-2 bg-accent rounded-full animate-pulse"></span>
                     </button>
                 </div>
+
+                 <div id="settings-panel" class="glass p-3 rounded-[1.5rem] flex items-center gap-3 shadow-xl bg-gray-900/95 border border-white/10 absolute bottom-28 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none scale-95 origin-bottom">
+                    <button onclick="adjustFontSize(-0.5)" class="p-3 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition bg-white/5">
+                        <span class="text-sm font-bold">A-</span>
+                    </button>
+                     <button onclick="adjustFontSize(0.5)" class="p-3 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition bg-white/5">
+                        <span class="text-lg font-bold">A+</span>
+                    </button>
+                    <div class="w-px h-6 bg-white/10 mx-1"></div>
+                    <button onclick="toggleMirror()" class="p-3 rounded-full text-gray-400 hover:text-accent hover:bg-white/10 transition flex flex-col items-center gap-1 group" title="Ayna Modu">
+                        <svg class="w-5 h-5 group-[.active]:text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        <span class="text-[0.6rem] uppercase font-bold">Ayna</span>
+                    </button>
+                    <div class="w-px h-6 bg-white/10 mx-1"></div>
+                     <button onclick="resetReadingPos()" class="p-3 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition" title="Başa Sar">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+
             </div>
         </section>
     </main>
@@ -110,19 +168,74 @@
             container: document.getElementById('prompter-text-container'),
             status: document.getElementById('status-bubble'),
             micBtn: document.getElementById('mic-btn'),
-            micPulse: document.getElementById('mic-pulse')
+            micPulse: document.getElementById('mic-pulse'),
+            saveStatus: document.getElementById('save-status'),
+            settingsPanel: document.getElementById('settings-panel')
         };
 
         let state = {
             recognition: null,
             isListening: false,
             shouldListen: false,
-            words: [],      // DOM elementleri
-            cleanText: [],  // Karşılaştırma metni
-            currentIndex: 0
+            words: [],
+            cleanText: [],
+            currentIndex: 0,
+            currentFontSize: 4, // rem
+            isMirrored: false,
+            settingsOpen: false
         };
 
-        // === API BAŞLATMA ===
+        // === OTO-KAYIT SİSTEMİ ===
+        // Sayfa yüklendiğinde hafızadan al
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedText = localStorage.getItem('prompterText');
+            if (savedText) els.source.value = savedText;
+        });
+
+        // Yazı değiştikçe hafızaya at
+        els.source.addEventListener('input', () => {
+            localStorage.setItem('prompterText', els.source.value);
+            showSaveStatus();
+        });
+
+        function showSaveStatus() {
+            els.saveStatus.classList.remove('opacity-0');
+            setTimeout(() => els.saveStatus.classList.add('opacity-0'), 2000);
+        }
+
+        // === KLAVYE KISAYOLLARI (PANİK MODU) ===
+        document.addEventListener('keydown', (e) => {
+            if (els.prompter.classList.contains('hidden')) return; // Sadece prompter modunda
+
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    toggleMicrophone();
+                    break;
+                case 'ArrowRight':
+                case 'ArrowDown':
+                    e.preventDefault();
+                    manualMove(1);
+                    break;
+                case 'ArrowLeft':
+                case 'ArrowUp':
+                    e.preventDefault();
+                    manualMove(-1);
+                    break;
+            }
+        });
+
+        function manualMove(direction) {
+            let newIndex = state.currentIndex + direction;
+            newIndex = Math.max(0, Math.min(newIndex, state.words.length - 1));
+            if (newIndex !== state.currentIndex) {
+                scrollToIndex(newIndex);
+                state.currentIndex = newIndex;
+                updateStatus(direction > 0 ? "Manuel İleri ▶" : "◀ Manuel Geri", "text-yellow-400");
+            }
+        }
+
+        // === SES MOTORU (V5 FINAL ENGINE) ===
         function initSpeech() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return alert("Chrome kullanın.");
 
@@ -135,128 +248,119 @@
             state.recognition.onstart = () => {
                 state.isListening = true;
                 updateMicUI(true);
-                updateStatus("Dinleniyor...", "text-green-400");
+                updateStatus("Dinleniyor... Akışa bırak.", "text-green-400 bg-green-900/30 border-green-500/30");
             };
 
             state.recognition.onend = () => {
                 state.isListening = false;
                 if (state.shouldListen) {
+                    // updateStatus("Bağlantı tazeleniyor...", "text-yellow-400"); // Kullanıcıyı darlamaya gerek yok
                     try { state.recognition.start(); } catch(e) {}
                 } else {
                     updateMicUI(false);
-                    updateStatus("Beklemede", "text-gray-400");
+                    updateStatus("Duraklatıldı. Devam etmek için tıkla.", "text-gray-400");
                 }
             };
             
-            state.recognition.onerror = () => { state.shouldListen = false; updateMicUI(false); };
+            state.recognition.onerror = (e) => { 
+                if(e.error === 'not-allowed') {
+                     state.shouldListen = false; 
+                     updateMicUI(false);
+                     updateStatus("HATA: Mikrofon izni yok!", "text-red-400 bg-red-900/50");
+                }
+            };
 
             state.recognition.onresult = (event) => {
                 let transcript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    transcript += event.results[i][0].transcript;
-                }
+                for (let i = event.resultIndex; i < event.results.length; ++i) transcript += event.results[i][0].transcript;
                 if (transcript.trim()) handleInput(transcript.toLowerCase().trim());
             };
         }
 
-        // === V4 ZEKA: ÇİFTE DOĞRULAMA ===
-        
+        // --- MOTORUN KALBİ (En Sıkı Kontrol) ---
         function handleInput(transcript) {
-            // Son söylenen kelimeleri diziye at
             const spokenWords = transcript.split(/\s+/);
             const lastWord = spokenWords[spokenWords.length - 1]; 
             const secondLastWord = spokenWords.length > 1 ? spokenWords[spokenWords.length - 2] : null;
 
-            if (!lastWord) return;
+            if (!lastWord || lastWord.length < 2) return;
 
-            // Ekrana ne duyduğunu yaz (Debug)
-            updateStatus(`Duyulan: ${lastWord}`, "text-blue-300");
+            // Debug için (İstersen aç)
+            // updateStatus(`Duyulan: ${lastWord}`, "text-blue-300");
 
-            // SEARCH HORIZON: Sadece önümüzdeki 6 kelimeye bak (Çok daraltıldı)
-            const SEARCH_RANGE = 6; 
-            const searchEnd = Math.min(state.currentIndex + SEARCH_RANGE, state.cleanText.length);
+            // Çok dar arama menzili (6 kelime)
+            const searchEnd = Math.min(state.currentIndex + 6, state.cleanText.length);
 
             for (let i = state.currentIndex; i < searchEnd; i++) {
                 const targetWord = state.cleanText[i];
                 let isMatch = false;
 
-                // --- STRATEJİ 1: İKİLİ KOMBİNASYON (En Güvenli) ---
-                // Eğer önceki kelimeyi de biliyorsak ve metinde yan yanalarsa
+                // 1. Kural: İkili Kombinasyon (En Güvenli)
                 if (secondLastWord && i > 0) {
                     const prevTarget = state.cleanText[i - 1];
-                    if (prevTarget === secondLastWord && targetWord === lastWord) {
-                        isMatch = true; 
-                    }
+                    if (prevTarget === secondLastWord && targetWord === lastWord) isMatch = true;
                 }
 
-                // --- STRATEJİ 2: TEKİL KELİME (Sıkı Kontrol) ---
-                // Eğer ikili tutmadıysa, tekil bak ama kurallar katı
-                if (!isMatch) {
-                    // 1. Kelime birebir aynıysa
-                    if (targetWord === lastWord) {
-                        isMatch = true;
-                    }
-                    // 2. Kısmi eşleşme SADECE kelime uzunsa ve başlangıcı tutuyorsa
-                    // Örn: "gerçekleş-tirdi" (OK), "başla-yalım" (HAYIR - uzunluk farkı çok)
-                    else if (lastWord.length > 4 && targetWord.startsWith(lastWord)) {
-                        const lengthDiff = Math.abs(targetWord.length - lastWord.length);
-                        if (lengthDiff <= 3) { // Sadece 3 harf farkına izin ver
-                            isMatch = true;
-                        }
-                    }
+                // 2. Kural: Tekil Kelime (ACIMASIZ TAM EŞLEŞME)
+                // Benzerlik yok. Kök yok. Ya hep ya hiç.
+                if (!isMatch && targetWord === lastWord) {
+                     isMatch = true;
                 }
 
                 if (isMatch) {
                     scrollToIndex(i);
                     state.currentIndex = i + 1;
-                    return; // Bulduğun an çık, ileri gitme
+                    return; // Bulduğun an çık.
                 }
             }
         }
 
+        // === GÖRSEL İŞLEMLER ===
         function scrollToIndex(index) {
             state.words.forEach((el, i) => {
                 if (i === index) {
-                    el.className = 'highlighted-word text-white opacity-100';
+                    el.className = 'prompter-word highlighted-word';
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else if (i < index) {
-                    el.className = 'inline-block opacity-20 transition-all duration-500 blur-[2px] scale-95'; // Okunanlar silik
+                    el.className = 'prompter-word read-word'; // Okunanlar flu
                 } else {
-                    el.className = 'inline-block opacity-40 transition-all duration-300'; // Gelecekler
+                    el.className = 'prompter-word'; // Gelecekler normal
                 }
             });
         }
 
+        // === UI KONTROLLERİ ===
         function startPrompter() {
             const text = els.source.value.trim();
-            if (!text) return alert("Metin girin.");
+            if (!text) return alert("Metin girin bro.");
 
             els.container.innerHTML = '';
             state.words = [];
             state.cleanText = [];
             state.currentIndex = 0;
 
-            text.split(/(\s+)/).forEach(part => {
-                if (part.trim().length > 0) {
-                    const span = document.createElement('span');
-                    span.textContent = part;
-                    span.className = 'inline-block opacity-40 transition-all duration-300 mx-1.5 my-1';
-                    els.container.appendChild(span);
-                    state.words.push(span);
-                    
-                    // Temiz metin (noktalama yok)
-                    state.cleanText.push(part.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""));
-                } else if (part.includes('\n')) {
-                    els.container.appendChild(document.createElement('br'));
-                    els.container.appendChild(document.createElement('br'));
-                }
-            });
+            // --- YENİ METİN İŞLEME (BOŞLUK SORUNU ÇÖZÜMÜ) ---
+            // Kelimeleri doğal halleriyle al (noktalama dahil)
+            const rawWords = text.split(/\s+/);
 
+            rawWords.forEach(rawWord => {
+                if(!rawWord) return;
+
+                // Görünen kelime (Span)
+                const span = document.createElement('span');
+                span.textContent = rawWord;
+                span.className = 'prompter-word';
+                els.container.appendChild(span);
+                state.words.push(span);
+                
+                // Karşılaştırma için temiz kelime (sadece harfler)
+                state.cleanText.push(rawWord.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()"']/g,""));
+            });
+            
             els.editor.classList.add('hidden');
             els.prompter.classList.remove('hidden');
             
             if (!state.recognition) initSpeech();
-            toggleMicrophone();
         }
 
         function stopPrompter() {
@@ -264,6 +368,7 @@
             if (state.recognition) state.recognition.stop();
             els.prompter.classList.add('hidden');
             els.editor.classList.remove('hidden');
+            closeSettings();
         }
 
         function toggleMicrophone() {
@@ -281,27 +386,65 @@
         function resetReadingPos() {
             state.currentIndex = 0;
             scrollToIndex(0);
+            updateStatus("Başa sarıldı.", "text-blue-400");
+        }
+
+        // --- YENİ ÖZELLİK FONKSİYONLARI ---
+        function toggleSettings() {
+            state.settingsOpen = !state.settingsOpen;
+            if(state.settingsOpen) {
+                els.settingsPanel.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none', 'scale-95');
+            } else {
+                closeSettings();
+            }
+        }
+        function closeSettings() {
+            state.settingsOpen = false;
+             els.settingsPanel.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none', 'scale-95');
+        }
+
+        function adjustFontSize(change) {
+            state.currentFontSize = Math.max(2, Math.min(8, state.currentFontSize + change));
+            document.documentElement.style.setProperty('--prompter-font-size', `${state.currentFontSize}rem`);
+        }
+
+        function toggleMirror() {
+            state.isMirrored = !state.isMirrored;
+            els.container.classList.toggle('mirror', state.isMirrored);
+            const btn = document.querySelector('#settings-panel button[onclick="toggleMirror()"]');
+            btn.classList.toggle('active', state.isMirrored);
+             updateStatus(state.isMirrored ? "Ayna Modu: AÇIK" : "Ayna Modu: KAPALI", "text-blue-300");
         }
 
         function updateMicUI(isActive) {
             if (isActive) {
-                els.micBtn.classList.add('bg-red-500', 'ring-4', 'ring-red-500/30');
+                els.micBtn.classList.add('bg-red-600', 'ring-4', 'ring-red-600/30', 'scale-110');
                 els.micBtn.classList.remove('bg-accent');
-                els.micPulse.classList.add('animate-ping', 'opacity-30');
+                els.micPulse.classList.add('animate-ping', 'opacity-40');
             } else {
-                els.micBtn.classList.remove('bg-red-500', 'ring-4', 'ring-red-500/30');
+                els.micBtn.classList.remove('bg-red-600', 'ring-4', 'ring-red-600/30', 'scale-110');
                 els.micBtn.classList.add('bg-accent');
-                els.micPulse.classList.remove('animate-ping', 'opacity-30');
+                els.micPulse.classList.remove('animate-ping', 'opacity-40');
             }
         }
 
+        let statusTimeout;
         function updateStatus(msg, colorClass) {
             els.status.textContent = msg;
-            els.status.className = `px-4 py-1.5 rounded-full bg-black/80 backdrop-blur text-xs font-mono transition-colors duration-300 border border-white/10 shadow-lg text-center min-w-[200px] ${colorClass}`;
+            els.status.className = `px-4 py-2 rounded-full bg-black/80 backdrop-blur-xl text-xs font-mono transition-all duration-300 border border-white/10 shadow-xl text-center min-w-[220px] ${colorClass}`;
+            
+            clearTimeout(statusTimeout);
+            if(!state.shouldListen && !msg.includes("Duraklatıldı")) {
+                 statusTimeout = setTimeout(() => {
+                      updateStatus("Duraklatıldı. Devam etmek için tıkla.", "text-gray-400");
+                 }, 3000);
+            }
         }
 
-        els.source.value = "Merhaba! V4 Güncellemesi test ediliyor.\n\nLütfen bu metni normal bir hızda okumaya başla. Artık sistem 'başla' kelimesini duyunca sadece buraya bakar.\n\nAşağıdaki 'Hadi başlayalım' kelimesine asla atlamaz.\n\nÇünkü artık kelime köküne değil, tam eşleşmeye ve kelime sırasına bakıyoruz. Hadi başlayalım!";
-
+        // İlk açılışta placeholder metin (Eğer hafızada yoksa)
+        if(!els.source.value) {
+             els.source.value = "Hoş geldin Kral! İşte V5 Gold Edition.\n\nArtık metinlerin tren gibi birbirine girmiyor, gayet ferah.\n\nOkunan kelime gözünü kör etmiyor, tatlı bir buz mavisiyle parlıyor.\n\nVe en önemlisi: Sistem artık 'benzer' kelimelere asla atlamaz. Sadece %100 emin olduğunda ilerler.\n\nSağ alttaki ayarlar butonuna tıkla; Ayna modu, font büyütme orada. Ayrıca BOŞLUK tuşuyla mikrofonu açıp kapatabilirsin.\n\nSahne senin!";
+        }
     </script>
 </body>
 </html>
