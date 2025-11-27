@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Sesli Teleprompter Pro</title>
+    <title>Teleprompter Pro V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script>
@@ -13,8 +13,8 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        accent: { DEFAULT: '#3B82F6', dark: '#2563EB' }, // Modern mavi tonları
-                        darkbg: '#0F172A', // Derin gece mavisi/siyah
+                        accent: { DEFAULT: '#3B82F6', dark: '#2563EB' },
+                        darkbg: '#0F172A',
                         surface: '#1E293B'
                     }
                 }
@@ -22,365 +22,268 @@
         }
     </script>
     <style>
-        /* Özel Scrollbar Gizleme (Daha temiz görünüm için) */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Prompter Metin Alanı */
         #prompter-text-container {
             scroll-behavior: smooth;
-            height: 80vh; /* Ekranın %80'i */
+            height: 70vh;
             overflow-y: auto;
-            padding-top: 40vh; /* Metin ortada başlasın */
+            padding-top: 40vh;
             padding-bottom: 50vh;
             mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
         }
-        /* Okunan kelime vurgusu */
         .highlighted-word {
-            color: #3B82F6; /* Accent rengi */
-            text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-            transition: all 0.3s ease;
+            color: #3B82F6;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+            transform: scale(1.1);
+            display: inline-block;
+            transition: all 0.2s ease;
         }
-        /* Buzlu Cam Efekti */
         .glass {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
 <body class="bg-darkbg text-gray-200 font-sans min-h-screen overflow-hidden relative">
 
+    <div id="debug-panel" class="fixed top-0 left-0 w-full bg-red-900/80 text-white text-center text-xs py-1 z-50 hidden">
+        Sistem Hatası: <span id="error-msg"></span>
+    </div>
+    
     <nav class="flex justify-between items-center p-6 relative z-20">
-        <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-            Teleprompter Pro
+        <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+            Teleprompter Pro <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded ml-2">V2</span>
         </h1>
-        <button onclick="toggleAboutModal()" class="px-4 py-2 bg-surface hover:bg-gray-700 rounded-lg transition text-sm font-semibold border border-gray-700/50">
-            Hakkında
-        </button>
+        <button onclick="window.location.reload()" class="text-sm text-gray-400 hover:text-white">Sayfayı Yenile</button>
     </nav>
 
     <main class="container mx-auto px-4 relative z-10 h-full flex flex-col items-center justify-center">
-        
-        <section id="editor-mode" class="w-full max-w-4xl transition-all duration-500 ease-in-out transform">
-            <div class="glass rounded-2xl p-8 shadow-2xl">
-                <h2 class="text-xl font-semibold mb-4 text-gray-300 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Metnini Hazırla
-                </h2>
-                <textarea id="source-text" 
-                    class="w-full h-96 bg-darkbg/50 p-6 rounded-xl border border-gray-700/50 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none resize-none text-lg placeholder-gray-500 transition shadow-inner"
-                    placeholder="Metnini buraya yapıştır bro..."></textarea>
-                
-                <div class="flex justify-center mt-8">
-                    <button onclick="startPrompter()" 
-                        class="group relative inline-flex items-center justify-start overflow-hidden rounded-full px-8 py-4 bg-accent font-bold text-white transition-all hover:bg-accent-dark shadow-lg hover:shadow-accent/50">
-                        <span class="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
-                        <span class="relative flex items-center text-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Sunumu Başlat
-                        </span>
+        <section id="editor-mode" class="w-full max-w-4xl transition-all duration-500">
+            <div class="glass rounded-2xl p-6 md:p-8 shadow-2xl">
+                <textarea id="source-text" class="w-full h-80 bg-darkbg/50 p-4 rounded-xl border border-gray-700/50 outline-none resize-none text-lg text-gray-300" placeholder="Metnini buraya yapıştır..."></textarea>
+                <div class="flex justify-center mt-6">
+                    <button onclick="startPrompter()" class="px-8 py-4 bg-accent hover:bg-accent-dark text-white rounded-full font-bold shadow-lg transition transform hover:scale-105">
+                        Sunumu Başlat 🚀
                     </button>
                 </div>
             </div>
         </section>
 
-        <section id="prompter-mode" class="hidden w-full max-w-5xl relative h-screen">
-            <div id="prompter-text-container" class="no-scrollbar text-5xl md:text-7xl font-bold text-center leading-tight text-gray-400 select-none">
+        <section id="prompter-mode" class="hidden w-full max-w-5xl relative h-screen flex flex-col">
+            <div id="prompter-text-container" class="no-scrollbar text-4xl md:text-6xl font-bold text-center leading-tight text-gray-500 select-none px-4"></div>
+
+            <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-xl px-4 flex flex-col items-center space-y-4 z-50">
+                
+                <div id="live-caption" class="glass px-4 py-2 rounded-lg text-sm text-green-400 font-mono min-h-[40px] flex items-center justify-center w-full text-center">
+                    Mikrofon bekleniyor... (Konuştuğunda burada yazacak)
                 </div>
 
-            <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 glass rounded-full p-3 flex items-center space-x-4 shadow-2xl z-50 border border-white/10">
-                <button onclick="stopPrompter()" class="p-3 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-full transition tooltip-trigger" title="Düzenlemeye Dön">
-                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-                
-                <div class="h-8 w-px bg-gray-700/50"></div>
+                <div class="glass rounded-full p-2 flex items-center space-x-4 shadow-2xl bg-gray-900/90">
+                    <button onclick="stopPrompter()" class="p-4 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    
+                    <button id="mic-btn" onclick="toggleMicrophone()" class="p-5 bg-accent hover:bg-blue-600 rounded-full text-white shadow-lg transition transform active:scale-95">
+                        <svg id="mic-icon" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                    </button>
 
-                <button id="mic-btn" onclick="toggleMicrophone()" class="p-4 bg-accent text-white rounded-full shadow-lg hover:shadow-accent/50 transition transform hover:scale-105">
-                     <svg id="mic-icon-off" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                    </svg>
-                    <svg id="mic-icon-on" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 hidden animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                    </svg>
-                </button>
-
-                <div class="h-8 w-px bg-gray-700/50"></div>
-
-                 <button onclick="resetReadingPos()" class="p-3 bg-surface hover:bg-gray-700 text-gray-300 rounded-full transition" title="Başa Sar">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                </button>
+                    <button onclick="resetReadingPos()" class="p-4 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
             </div>
-            <div id="status-bar" class="fixed top-20 left-1/2 transform -translate-x-1/2 glass px-4 py-2 rounded-full text-sm text-gray-400 hidden z-40">
-                Dinleniyor...
-            </div>
-
         </section>
     </main>
 
-    <div id="about-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center backdrop-blur-sm transition-opacity opacity-0">
-        <div class="glass p-8 rounded-2xl max-w-md w-full m-4 relative transform scale-95 transition-transform" id="about-modal-content">
-            <button onclick="toggleAboutModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-            <h2 class="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">Hakkında</h2>
-            <p class="text-gray-300 mb-4 leading-relaxed">
-                Bu modern teleprompter uygulaması, tarayıcınızın yerleşik ses tanıma teknolojisini kullanarak okuma hızınıza otomatik olarak ayak uydurur.
-            </p>
-            <p class="text-gray-400 text-sm text-center mt-6 border-t border-gray-700/50 pt-4">
-                Geliştirici ve Fikir Babası:<br>
-                <span class="font-bold text-accent text-lg mt-1 block">SENİN ADIN BURAYA GELECEK BRO</span>
-            </p>
-        </div>
-    </div>
-
     <script>
-        // === DEĞİŞKENLER VE ELEMENTLER ===
         const editorMode = document.getElementById('editor-mode');
         const prompterMode = document.getElementById('prompter-mode');
         const sourceText = document.getElementById('source-text');
         const prompterContainer = document.getElementById('prompter-text-container');
+        const liveCaption = document.getElementById('live-caption');
         const micBtn = document.getElementById('mic-btn');
-        const micIconOff = document.getElementById('mic-icon-off');
-        const micIconOn = document.getElementById('mic-icon-on');
-        const statusBar = document.getElementById('status-bar');
+        const debugPanel = document.getElementById('debug-panel');
+        const errorMsg = document.getElementById('error-msg');
 
         let recognition;
         let isListening = false;
-        let wordElements = []; // Her kelimenin span elementi
-        let cleanTextArray = []; // Karşılaştırma için temizlenmiş kelime listesi
-        let currentWordIndex = 0; // Şu an okunan kelimenin indeksi
+        let shouldBeListening = false; // Kullanıcı durdurana kadar true kalacak
+        let wordElements = [];
+        let cleanTextArray = [];
+        let currentWordIndex = 0;
 
-        // === BAŞLANGIÇ AYARLARI (Web Speech API) ===
+        // Tarayıcı Kontrolü ve Ayarlar
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.continuous = true; // Sürekli dinle
             recognition.interimResults = true; // Anlık sonuçları ver
-            recognition.lang = 'tr-TR'; // Türkçe ayarı
+            recognition.lang = 'tr-TR';
 
-            // Ses algılandığında tetiklenen olay
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        // Final sonuç (pek kullanmayacağız, anlık lazım)
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-                
-                if (interimTranscript) {
-                    handleSpeechInput(interimTranscript.toLowerCase());
-                    showStatus(`Algılandı: "${interimTranscript}"`);
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('bg-red-500', 'animate-pulse');
+                micBtn.classList.remove('bg-accent');
+                liveCaption.textContent = "Dinliyorum... (Lütfen net konuş)";
+                liveCaption.classList.remove('text-red-400');
+                liveCaption.classList.add('text-green-400');
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                // Eğer kullanıcı manuel durdurmadıysa, otomatik tekrar başlat (KEEP ALIVE)
+                if (shouldBeListening) {
+                    liveCaption.textContent = "Bağlantı yenileniyor...";
+                    try { recognition.start(); } catch(e) {}
+                } else {
+                    micBtn.classList.remove('bg-red-500', 'animate-pulse');
+                    micBtn.classList.add('bg-accent');
+                    liveCaption.textContent = "Mikrofon kapalı.";
+                    liveCaption.classList.add('text-gray-500');
                 }
             };
 
             recognition.onerror = (event) => {
-                showStatus("Hata: Ses algılanamadı. Tekrar dene.", true);
-                stopListeningUI();
+                console.error("Speech Error:", event.error);
+                if (event.error === 'not-allowed') {
+                    showError("Mikrofon izni reddedildi! Lütfen tarayıcı ayarlarından izin verin.");
+                    shouldBeListening = false;
+                } else if (event.error === 'no-speech') {
+                    // Sessizlik hatası, yoksay ve devam et
+                } else {
+                    liveCaption.textContent = "Hata: " + event.error;
+                }
             };
 
-            recognition.onend = () => {
-               if(isListening) { recognition.start(); } // Kesilirse tekrar başlat
-               else { stopListeningUI(); }
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                // Ekrana ne duyduğunu yaz (Debug)
+                const heardText = interimTranscript || finalTranscript;
+                if(heardText) {
+                    liveCaption.textContent = `Duyulan: "${heardText}"`;
+                    handleSpeechInput(heardText.toLowerCase());
+                }
             };
 
         } else {
-            alert("Tarayıcınız ses tanıma özelliğini desteklemiyor. Lütfen Chrome kullanın.");
+            showError("Bu tarayıcı ses tanımayı desteklemiyor. Lütfen Chrome kullanın.");
         }
 
-
-        // === ANA FONKSİYONLAR ===
-
-        // 1. Prompter'ı Başlat (Metni Hazırla)
         function startPrompter() {
             const text = sourceText.value.trim();
-            if (!text) {alert("Lütfen önce bir metin girin!"); return;}
-
-            // Arayüzü değiştir
+            if (!text) return alert("Metin gir bro!");
+            
+            sourceText.value = text; // Temizlenmiş hali kalsın
+            processText(text);
+            
             editorMode.classList.add('hidden');
             prompterMode.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden'); // Sayfa kaymasını engelle
-
-            // Metni işle ve DOM'a bas
-            processTextForPrompter(text);
             
-            // Mikrofonu otomatik açmayı dene (Tarayıcı izin isteyebilir)
-            // toggleMicrophone(); // İstersen bunu açabilirsin, ama manuel basmak daha güvenli.
-            showStatus("Başlamak için mikrofona tıkla");
+            // Otomatik başlatmayı dene
+            toggleMicrophone();
         }
 
-        // 2. Metni İşleme (Kelime kelime ayır ve span içine al)
-        function processTextForPrompter(text) {
+        function processText(text) {
             prompterContainer.innerHTML = '';
             wordElements = [];
             cleanTextArray = [];
             currentWordIndex = 0;
 
-            // Metni kelimelere böl (boşluk ve yeni satıra göre)
-            const words = text.split(/\s+/);
+            // Metni daha akıllı böl
+            const words = text.split(/[\s\n]+/); // Boşluk ve enter'a göre ayır
 
             words.forEach((word, index) => {
-                // Ekranda görünecek span
                 const span = document.createElement('span');
                 span.textContent = word + ' ';
-                span.id = 'word-' + index;
-                span.classList.add('prompter-word', 'transition-colors', 'duration-300'); // Tailwind sınıfları
+                span.id = 'w-' + index;
+                span.className = 'inline-block transition-opacity duration-300 opacity-40'; // Varsayılan sönük
                 prompterContainer.appendChild(span);
                 wordElements.push(span);
-
-                // Karşılaştırma için temizlenmiş kelime (noktalama yok, küçük harf)
-                cleanTextArray.push(word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""));
                 
-                // Satır sonları için <br> ekle (İsteğe bağlı, şu an düz akış daha iyi)
-                // if (word.includes('\n')) prompterContainer.appendChild(document.createElement('br'));
+                // Temizlik: noktalama işaretlerini kaldır, küçült
+                cleanTextArray.push(word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""));
             });
+            
+            // İlk kelimeyi hafif parlat
+            if(wordElements[0]) wordElements[0].classList.remove('opacity-40');
         }
 
-        // 3. Ses Girişini İşle (THE CORE LOGIC)
         function handleSpeechInput(transcript) {
-             // Çok basit bir eşleştirme algoritması:
-             // Söylenen son birkaç kelimeyi al, metindeki sıradaki kelimelerle karşılaştır.
-             
-             const spokenWords = transcript.trim().split(/\s+/);
-             const lastSpokenWord = spokenWords[spokenWords.length - 1]; // En son söylenen kelime
-
-             // Performans için sadece önümüzdeki 50 kelimeye bakalım
-             const searchHorizon = Math.min(currentWordIndex + 50, cleanTextArray.length);
-
-             for (let i = currentWordIndex; i < searchHorizon; i++) {
-                 // Eğer söylenen son kelime, metindeki sıradaki kelimeyle eşleşirse (kabaca)
-                 // "merhaba" == "merhaba" veya "merhaba."
-                 if (cleanTextArray[i].includes(lastSpokenWord) && lastSpokenWord.length > 2) {
-                     scrollToWord(i);
-                     currentWordIndex = i + 1; // Bir sonraki kelimeden devam et
-                     break; // Eşleşme bulundu, döngüden çık
-                 }
-             }
-        }
-
-        // 4. Kaydırma ve Vurgulama Efekti
-        function scrollToWord(index) {
-            // Eski vurguları temizle
-            wordElements.forEach(el => el.classList.remove('highlighted-word', 'text-gray-100'));
+            const spokenWords = transcript.trim().split(/\s+/);
+            const lastWord = spokenWords[spokenWords.length - 1]; // Duyulan son kelime
             
-            // Yeni kelimeyi ve öncekileri vurgula
-            for(let i=0; i<= index; i++){
-                 // wordElements[i].classList.add('text-gray-500'); // Okunanları silikleştir (isteğe bağlı)
-            }
-            
-            const targetElement = wordElements[index];
-            if(targetElement) {
-                 targetElement.classList.add('highlighted-word');
-                 // Olayın kalbi: Yumuşakça merkeze kaydır
-                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
+            // Performans için arama aralığı (mevcut konumdan ileriye 100 kelime)
+            const searchLimit = Math.min(currentWordIndex + 100, cleanTextArray.length);
 
-
-        // === YARDIMCI FONKSİYONLAR (UI Kontrolleri) ===
-
-        // Prompter'ı Durdur ve Editöre Dön
-        function stopPrompter() {
-            if (isListening) toggleMicrophone(); // Mikrofonu kapat
-            editorMode.classList.remove('hidden');
-            prompterMode.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-            hideStatus();
-        }
-
-        // Mikrofonu Aç/Kapat
-        function toggleMicrophone() {
-            if (!recognition) return;
-
-            if (isListening) {
-                recognition.stop();
-                stopListeningUI();
-            } else {
-                try {
-                    recognition.start();
-                    startListeningUI();
-                } catch (err) {
-                    // Zaten çalışıyorsa hata verebilir, yoksay.
+            // Algoritma: Son duyulan kelimeyi önümüzdeki metinde ara
+            for (let i = currentWordIndex; i < searchLimit; i++) {
+                // Basit eşleşme veya "kapsama" kontrolü
+                if (cleanTextArray[i] === lastWord || (lastWord.length > 3 && cleanTextArray[i].includes(lastWord))) {
+                    highlightAndScroll(i);
+                    currentWordIndex = i + 1; // Konumu güncelle
+                    return; 
                 }
             }
-            isListening = !isListening;
         }
 
-        function startListeningUI() {
-            micBtn.classList.remove('bg-accent');
-            micBtn.classList.add('bg-red-500');
-            micIconOff.classList.add('hidden');
-            micIconOn.classList.remove('hidden');
-            showStatus("Dinleniyor... Oku bakayım.");
+        function highlightAndScroll(index) {
+            // Öncekileri sönükleştir
+            wordElements.forEach((el, i) => {
+                if (i < index) el.className = 'inline-block transition-opacity duration-300 opacity-20'; // Okunanlar çok sönük
+                else if (i === index) el.className = 'highlighted-word text-white font-extrabold'; // Aktif kelime parlasın
+                else el.className = 'inline-block transition-opacity duration-300 opacity-40'; // Gelecekler orta sönük
+            });
+
+            // Kaydır
+            const el = wordElements[index];
+            if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        function stopListeningUI() {
-            micBtn.classList.add('bg-accent');
-            micBtn.classList.remove('bg-red-500');
-            micIconOff.classList.remove('hidden');
-            micIconOn.classList.add('hidden');
-             // showStatus("Mikrofon Durduruldu.");
-             hideStatus();
-        }
-
-        // Okumayı Başa Sar
-        function resetReadingPos() {
-            currentWordIndex = 0;
-            scrollToWord(0);
-            showStatus("Başa sarıldı.");
-        }
-
-        // Durum Çubuğu Göster/Gizle
-        let statusTimeout;
-        function showStatus(msg, isError = false) {
-            statusBar.textContent = msg;
-            statusBar.classList.remove('hidden');
-            statusBar.className = `fixed top-24 left-1/2 transform -translate-x-1/2 glass px-6 py-3 rounded-full text-sm font-medium z-50 transition-all ${isError ? 'text-red-400 bg-red-900/20' : 'text-accent bg-blue-900/20'}`;
+        function toggleMicrophone() {
+            if (!recognition) return;
             
-            clearTimeout(statusTimeout);
-            statusTimeout = setTimeout(() => {
-                 if(!isListening) hideStatus();
-            }, 3000);
-        }
-        function hideStatus() {
-             statusBar.classList.add('hidden');
-        }
-
-        // Hakkında Modalı Aç/Kapat
-        function toggleAboutModal() {
-            const modal = document.getElementById('about-modal');
-            const content = document.getElementById('about-modal-content');
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    content.classList.remove('scale-95');
-                }, 10);
+            if (shouldBeListening) {
+                shouldBeListening = false;
+                recognition.stop();
             } else {
-                modal.classList.add('opacity-0');
-                content.classList.add('scale-95');
-                setTimeout(() => modal.classList.add('hidden'), 300);
+                shouldBeListening = true;
+                try { recognition.start(); } catch(e) {}
             }
         }
 
-        // Başlangıçta örnek metin koyalım
-        sourceText.value = "Merhaba! Bu senin yeni, modern ve akıllı teleprompterın.\n\nTarayıcının ses tanıma özelliğini kullanarak, sen okudukça metni otomatik olarak kaydırır. Artık manuel hız ayarlarıyla uğraşmana gerek yok.\n\nSadece 'Sunumu Başlat' butonuna tıkla, açılan ekranda aşağıdaki mikrofon simgesine bas ve doğal hızında okumaya başla. Sistem senin sesini takip edecek ve okuduğun kelimeyi ekranın ortasına getirecek.\n\nEğer bir yerde takılırsan veya sistem seni kaçırırsa, fare tekerleği ile manuel olarak da kaydırabilirsin, merak etme kontrol sende.\n\nHadi bakalım, sahne senin bro!";
+        function stopPrompter() {
+            shouldBeListening = false;
+            if(recognition) recognition.stop();
+            prompterMode.classList.add('hidden');
+            editorMode.classList.remove('hidden');
+        }
 
+        function resetReadingPos() {
+            currentWordIndex = 0;
+            highlightAndScroll(0);
+        }
+
+        function showError(msg) {
+            debugPanel.classList.remove('hidden');
+            errorMsg.textContent = msg;
+            setTimeout(() => debugPanel.classList.add('hidden'), 5000);
+        }
+        
+        // Örnek Metin
+        sourceText.value = "Merhaba! Mikrofonunu test ediyoruz.\n\nLütfen bu metni normal bir hızda okumaya başla. Aşağıdaki yeşil kutuda senin söylediklerini anlık olarak yazacağım. \n\nEğer ben duyduğum kelimeyi metinde bulursam, otomatik olarak aşağı kayacağım. Hadi başlayalım!";
     </script>
 </body>
 </html>
