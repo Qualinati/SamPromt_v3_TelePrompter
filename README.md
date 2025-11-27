@@ -1,1 +1,1 @@
-M. Samet Sevgili, Eğitim teknolojileri Müdürlüğü İçin Gurula Sunar.
+M. Samet Sevgili, Eğitim Teknolojileri Müdürlüğü İçin SamPromt Teleprompter'ı Gurula Sunar.
