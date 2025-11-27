@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teleprompter Pro V2</title>
+    <title>Teleprompter Pro V3 (Stable)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script>
@@ -30,67 +30,68 @@
             overflow-y: auto;
             padding-top: 40vh;
             padding-bottom: 50vh;
-            mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
         }
         .highlighted-word {
             color: #3B82F6;
-            text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
-            transform: scale(1.1);
+            text-shadow: 0 0 25px rgba(59, 130, 246, 0.9);
+            transform: scale(1.15);
             display: inline-block;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease-out;
         }
         .glass {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
     </style>
 </head>
-<body class="bg-darkbg text-gray-200 font-sans min-h-screen overflow-hidden relative">
+<body class="bg-darkbg text-gray-200 font-sans min-h-screen overflow-hidden relative selection:bg-accent selection:text-white">
 
-    <div id="debug-panel" class="fixed top-0 left-0 w-full bg-red-900/80 text-white text-center text-xs py-1 z-50 hidden">
-        Sistem Hatası: <span id="error-msg"></span>
-    </div>
-    
     <nav class="flex justify-between items-center p-6 relative z-20">
-        <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-            Teleprompter Pro <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded ml-2">V2</span>
+        <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+            Teleprompter Pro <span class="text-xs bg-green-600 text-white px-2 py-1 rounded ml-2 align-middle">V3.0</span>
         </h1>
-        <button onclick="window.location.reload()" class="text-sm text-gray-400 hover:text-white">Sayfayı Yenile</button>
+        <button onclick="window.location.reload()" class="text-sm text-gray-400 hover:text-white transition">⟳ Yenile</button>
     </nav>
 
     <main class="container mx-auto px-4 relative z-10 h-full flex flex-col items-center justify-center">
         <section id="editor-mode" class="w-full max-w-4xl transition-all duration-500">
-            <div class="glass rounded-2xl p-6 md:p-8 shadow-2xl">
-                <textarea id="source-text" class="w-full h-80 bg-darkbg/50 p-4 rounded-xl border border-gray-700/50 outline-none resize-none text-lg text-gray-300" placeholder="Metnini buraya yapıştır..."></textarea>
+            <div class="glass rounded-2xl p-6 md:p-8 shadow-2xl border-t border-white/10">
+                <div class="mb-4 flex justify-between items-center">
+                    <label class="text-gray-400 text-sm font-semibold uppercase tracking-wider">Okunacak Metin</label>
+                    <span class="text-xs text-gray-500">İpucu: Metni yapıştır ve başla</span>
+                </div>
+                <textarea id="source-text" class="w-full h-80 bg-darkbg/60 p-5 rounded-xl border border-gray-700/50 outline-none resize-none text-lg text-gray-200 focus:border-accent focus:ring-1 focus:ring-accent transition" placeholder="Metnini buraya yapıştır..."></textarea>
                 <div class="flex justify-center mt-6">
-                    <button onclick="startPrompter()" class="px-8 py-4 bg-accent hover:bg-accent-dark text-white rounded-full font-bold shadow-lg transition transform hover:scale-105">
-                        Sunumu Başlat 🚀
+                    <button onclick="startPrompter()" class="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full font-bold shadow-lg shadow-blue-900/50 transition-all transform hover:scale-[1.02] active:scale-95">
+                        Sunumu Başlat
                     </button>
                 </div>
             </div>
         </section>
 
-        <section id="prompter-mode" class="hidden w-full max-w-5xl relative h-screen flex flex-col">
-            <div id="prompter-text-container" class="no-scrollbar text-4xl md:text-6xl font-bold text-center leading-tight text-gray-500 select-none px-4"></div>
+        <section id="prompter-mode" class="hidden w-full max-w-6xl relative h-screen flex flex-col">
+            <div id="prompter-text-container" class="no-scrollbar text-4xl md:text-6xl font-bold text-center leading-snug text-gray-600 select-none px-4 md:px-20 tracking-tight"></div>
 
-            <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-xl px-4 flex flex-col items-center space-y-4 z-50">
+            <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 w-full max-w-xl px-6 z-50 flex flex-col items-center gap-4">
                 
-                <div id="live-caption" class="glass px-4 py-2 rounded-lg text-sm text-green-400 font-mono min-h-[40px] flex items-center justify-center w-full text-center">
-                    Mikrofon bekleniyor... (Konuştuğunda burada yazacak)
+                <div id="status-bubble" class="px-4 py-1.5 rounded-full bg-black/60 backdrop-blur text-xs font-mono text-gray-400 transition-colors duration-300 border border-white/5">
+                    Mikrofon bekleniyor...
                 </div>
 
-                <div class="glass rounded-full p-2 flex items-center space-x-4 shadow-2xl bg-gray-900/90">
-                    <button onclick="stopPrompter()" class="p-4 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <div class="glass rounded-full p-2.5 flex items-center gap-4 shadow-2xl bg-gray-900/90 border border-white/10">
+                    <button onclick="stopPrompter()" class="p-4 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition" title="Düzenlemeye Dön">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
                     </button>
                     
-                    <button id="mic-btn" onclick="toggleMicrophone()" class="p-5 bg-accent hover:bg-blue-600 rounded-full text-white shadow-lg transition transform active:scale-95">
-                        <svg id="mic-icon" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                    <button id="mic-btn" onclick="toggleMicrophone()" class="relative p-6 bg-accent rounded-full text-white shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 active:scale-95 group">
+                        <span id="mic-pulse" class="absolute inset-0 rounded-full bg-white opacity-0 transition-opacity duration-1000"></span>
+                        <svg id="mic-icon" class="w-8 h-8 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
                     </button>
 
-                    <button onclick="resetReadingPos()" class="p-4 bg-gray-700 hover:bg-gray-600 rounded-full text-white transition">
+                    <button onclick="resetReadingPos()" class="p-4 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition" title="Başa Sar">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     </button>
                 </div>
@@ -99,191 +100,218 @@
     </main>
 
     <script>
-        const editorMode = document.getElementById('editor-mode');
-        const prompterMode = document.getElementById('prompter-mode');
-        const sourceText = document.getElementById('source-text');
-        const prompterContainer = document.getElementById('prompter-text-container');
-        const liveCaption = document.getElementById('live-caption');
-        const micBtn = document.getElementById('mic-btn');
-        const debugPanel = document.getElementById('debug-panel');
-        const errorMsg = document.getElementById('error-msg');
+        // DOM Elementleri
+        const els = {
+            editor: document.getElementById('editor-mode'),
+            prompter: document.getElementById('prompter-mode'),
+            source: document.getElementById('source-text'),
+            container: document.getElementById('prompter-text-container'),
+            status: document.getElementById('status-bubble'),
+            micBtn: document.getElementById('mic-btn'),
+            micPulse: document.getElementById('mic-pulse')
+        };
 
-        let recognition;
-        let isListening = false;
-        let shouldBeListening = false; // Kullanıcı durdurana kadar true kalacak
-        let wordElements = [];
-        let cleanTextArray = [];
-        let currentWordIndex = 0;
+        // Durum Değişkenleri
+        let state = {
+            recognition: null,
+            isListening: false,
+            shouldListen: false,
+            words: [],      // DOM elementleri
+            cleanText: [],  // Karşılaştırma metni
+            currentIndex: 0
+        };
 
-        // Tarayıcı Kontrolü ve Ayarlar
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        // === 1. BAŞLATMA VE KONFİGÜRASYON ===
+        function initSpeech() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Tarayıcınız ses tanımayı desteklemiyor. Chrome kullanın.");
+                return;
+            }
+
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true; // Sürekli dinle
-            recognition.interimResults = true; // Anlık sonuçları ver
-            recognition.lang = 'tr-TR';
+            state.recognition = new SpeechRecognition();
+            state.recognition.continuous = true;
+            state.recognition.interimResults = true;
+            state.recognition.lang = 'tr-TR';
 
-            recognition.onstart = () => {
-                isListening = true;
-                micBtn.classList.add('bg-red-500', 'animate-pulse');
-                micBtn.classList.remove('bg-accent');
-                liveCaption.textContent = "Dinliyorum... (Lütfen net konuş)";
-                liveCaption.classList.remove('text-red-400');
-                liveCaption.classList.add('text-green-400');
+            state.recognition.onstart = () => {
+                state.isListening = true;
+                updateMicUI(true);
+                updateStatus("Dinliyorum...", "text-green-400");
             };
 
-            recognition.onend = () => {
-                isListening = false;
-                // Eğer kullanıcı manuel durdurmadıysa, otomatik tekrar başlat (KEEP ALIVE)
-                if (shouldBeListening) {
-                    liveCaption.textContent = "Bağlantı yenileniyor...";
-                    try { recognition.start(); } catch(e) {}
+            state.recognition.onend = () => {
+                state.isListening = false;
+                if (state.shouldListen) {
+                    updateStatus("Bağlantı tazelexeniyor...", "text-yellow-400");
+                    try { state.recognition.start(); } catch(e) {}
                 } else {
-                    micBtn.classList.remove('bg-red-500', 'animate-pulse');
-                    micBtn.classList.add('bg-accent');
-                    liveCaption.textContent = "Mikrofon kapalı.";
-                    liveCaption.classList.add('text-gray-500');
+                    updateMicUI(false);
+                    updateStatus("Duraklatıldı", "text-gray-400");
                 }
             };
 
-            recognition.onerror = (event) => {
-                console.error("Speech Error:", event.error);
+            state.recognition.onerror = (event) => {
                 if (event.error === 'not-allowed') {
-                    showError("Mikrofon izni reddedildi! Lütfen tarayıcı ayarlarından izin verin.");
-                    shouldBeListening = false;
-                } else if (event.error === 'no-speech') {
-                    // Sessizlik hatası, yoksay ve devam et
-                } else {
-                    liveCaption.textContent = "Hata: " + event.error;
+                    state.shouldListen = false;
+                    alert("Mikrofon izni verilmedi!");
                 }
             };
 
-            recognition.onresult = (event) => {
-                let finalTranscript = '';
-                let interimTranscript = '';
-
+            state.recognition.onresult = (event) => {
+                // Sonuçları işle
+                let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
+                    transcript += event.results[i][0].transcript;
+                }
+                
+                if (transcript.trim()) {
+                    handleInput(transcript.toLowerCase().trim());
+                    // Debug için ekrana yazdırılabilir ama kullanıcı görmesin
+                }
+            };
+        }
+
+        // === 2. ÇEKİRDEK MANTIK (THE BRAIN) ===
+        
+        function handleInput(transcript) {
+            // Son söylenen kelimeleri al
+            const spokenWords = transcript.split(/\s+/);
+            const lastWord = spokenWords[spokenWords.length - 1];
+            if (!lastWord || lastWord.length < 2) return;
+
+            // --- V3 GÜNCELLEMESİ: AKILLI ARAMA ---
+            // Arama menzilini daralt (Sadece önümüzdeki 15 kelimeye bak)
+            // Bu "Greedy Match" (Hatalı atlama) sorununu çözer.
+            const SEARCH_HORIZON = 15; 
+            const searchEnd = Math.min(state.currentIndex + SEARCH_HORIZON, state.cleanText.length);
+
+            for (let i = state.currentIndex; i < searchEnd; i++) {
+                const targetWord = state.cleanText[i];
+                const distance = i - state.currentIndex;
+
+                let isMatch = false;
+
+                // A. Yakın Mesafe (0-5 kelime): Esnek Eşleşme
+                if (distance < 5) {
+                    // Kelime içeriyor mu? (Örn: "konular" -> "konu")
+                    if (targetWord === lastWord || (lastWord.length > 3 && targetWord.includes(lastWord))) {
+                        isMatch = true;
+                    }
+                } 
+                // B. Orta Mesafe (5-15 kelime): Sıkı Eşleşme
+                else {
+                    // Kesin eşleşme şart (Hatalı atlamayı önler)
+                    if (targetWord === lastWord) {
+                        isMatch = true;
                     }
                 }
 
-                // Ekrana ne duyduğunu yaz (Debug)
-                const heardText = interimTranscript || finalTranscript;
-                if(heardText) {
-                    liveCaption.textContent = `Duyulan: "${heardText}"`;
-                    handleSpeechInput(heardText.toLowerCase());
+                if (isMatch) {
+                    scrollToIndex(i);
+                    state.currentIndex = i + 1;
+                    return; // İlk bulduğunda dur, daha ileriye gitme!
                 }
-            };
-
-        } else {
-            showError("Bu tarayıcı ses tanımayı desteklemiyor. Lütfen Chrome kullanın.");
+            }
         }
 
+        function scrollToIndex(index) {
+            // Görsel güncelleme
+            state.words.forEach((el, i) => {
+                if (i === index) {
+                    el.className = 'highlighted-word text-white opacity-100';
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (i < index) {
+                    el.className = 'inline-block opacity-20 transition-opacity duration-500 blur-[1px]'; // Okunanlar flu
+                } else {
+                    el.className = 'inline-block opacity-50 transition-opacity duration-300'; // Gelecekler
+                }
+            });
+        }
+
+        // === 3. YARDIMCI İŞLEMLER ===
+
         function startPrompter() {
-            const text = sourceText.value.trim();
-            if (!text) return alert("Metin gir bro!");
+            const text = els.source.value.trim();
+            if (!text) return alert("Lütfen metin girin.");
+
+            // Metni Parçala
+            els.container.innerHTML = '';
+            state.words = [];
+            state.cleanText = [];
+            state.currentIndex = 0;
+
+            // Yeni satırları koru ama kelimeleri ayır
+            text.split(/(\s+)/).forEach(part => {
+                if (part.trim().length > 0) {
+                    const span = document.createElement('span');
+                    span.textContent = part; // Boşluksuz kelime
+                    span.className = 'inline-block opacity-50 transition-opacity duration-300 mx-1.5 my-1'; // Kelime arası boşluk margin ile
+                    els.container.appendChild(span);
+                    state.words.push(span);
+                    
+                    // Temiz metin (noktalama yok)
+                    state.cleanText.push(part.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""));
+                } else if (part.includes('\n')) {
+                    // Paragraf boşluğu
+                    els.container.appendChild(document.createElement('br'));
+                    els.container.appendChild(document.createElement('br'));
+                }
+            });
+
+            // UI Geçişi
+            els.editor.classList.add('hidden');
+            els.prompter.classList.remove('hidden');
             
-            sourceText.value = text; // Temizlenmiş hali kalsın
-            processText(text);
-            
-            editorMode.classList.add('hidden');
-            prompterMode.classList.remove('hidden');
-            
-            // Otomatik başlatmayı dene
+            // Başlat
+            if (!state.recognition) initSpeech();
             toggleMicrophone();
         }
 
-        function processText(text) {
-            prompterContainer.innerHTML = '';
-            wordElements = [];
-            cleanTextArray = [];
-            currentWordIndex = 0;
-
-            // Metni daha akıllı böl
-            const words = text.split(/[\s\n]+/); // Boşluk ve enter'a göre ayır
-
-            words.forEach((word, index) => {
-                const span = document.createElement('span');
-                span.textContent = word + ' ';
-                span.id = 'w-' + index;
-                span.className = 'inline-block transition-opacity duration-300 opacity-40'; // Varsayılan sönük
-                prompterContainer.appendChild(span);
-                wordElements.push(span);
-                
-                // Temizlik: noktalama işaretlerini kaldır, küçült
-                cleanTextArray.push(word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""));
-            });
-            
-            // İlk kelimeyi hafif parlat
-            if(wordElements[0]) wordElements[0].classList.remove('opacity-40');
-        }
-
-        function handleSpeechInput(transcript) {
-            const spokenWords = transcript.trim().split(/\s+/);
-            const lastWord = spokenWords[spokenWords.length - 1]; // Duyulan son kelime
-            
-            // Performans için arama aralığı (mevcut konumdan ileriye 100 kelime)
-            const searchLimit = Math.min(currentWordIndex + 100, cleanTextArray.length);
-
-            // Algoritma: Son duyulan kelimeyi önümüzdeki metinde ara
-            for (let i = currentWordIndex; i < searchLimit; i++) {
-                // Basit eşleşme veya "kapsama" kontrolü
-                if (cleanTextArray[i] === lastWord || (lastWord.length > 3 && cleanTextArray[i].includes(lastWord))) {
-                    highlightAndScroll(i);
-                    currentWordIndex = i + 1; // Konumu güncelle
-                    return; 
-                }
-            }
-        }
-
-        function highlightAndScroll(index) {
-            // Öncekileri sönükleştir
-            wordElements.forEach((el, i) => {
-                if (i < index) el.className = 'inline-block transition-opacity duration-300 opacity-20'; // Okunanlar çok sönük
-                else if (i === index) el.className = 'highlighted-word text-white font-extrabold'; // Aktif kelime parlasın
-                else el.className = 'inline-block transition-opacity duration-300 opacity-40'; // Gelecekler orta sönük
-            });
-
-            // Kaydır
-            const el = wordElements[index];
-            if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        function stopPrompter() {
+            state.shouldListen = false;
+            if (state.recognition) state.recognition.stop();
+            els.prompter.classList.add('hidden');
+            els.editor.classList.remove('hidden');
         }
 
         function toggleMicrophone() {
-            if (!recognition) return;
+            if (!state.recognition) initSpeech();
             
-            if (shouldBeListening) {
-                shouldBeListening = false;
-                recognition.stop();
+            if (state.shouldListen) {
+                state.shouldListen = false;
+                state.recognition.stop();
             } else {
-                shouldBeListening = true;
-                try { recognition.start(); } catch(e) {}
+                state.shouldListen = true;
+                try { state.recognition.start(); } catch(e) {}
             }
         }
 
-        function stopPrompter() {
-            shouldBeListening = false;
-            if(recognition) recognition.stop();
-            prompterMode.classList.add('hidden');
-            editorMode.classList.remove('hidden');
-        }
-
         function resetReadingPos() {
-            currentWordIndex = 0;
-            highlightAndScroll(0);
+            state.currentIndex = 0;
+            scrollToIndex(0);
         }
 
-        function showError(msg) {
-            debugPanel.classList.remove('hidden');
-            errorMsg.textContent = msg;
-            setTimeout(() => debugPanel.classList.add('hidden'), 5000);
+        function updateMicUI(isActive) {
+            if (isActive) {
+                els.micBtn.classList.add('bg-red-500', 'ring-4', 'ring-red-500/30');
+                els.micBtn.classList.remove('bg-accent');
+                els.micPulse.classList.add('animate-ping', 'opacity-30');
+            } else {
+                els.micBtn.classList.remove('bg-red-500', 'ring-4', 'ring-red-500/30');
+                els.micBtn.classList.add('bg-accent');
+                els.micPulse.classList.remove('animate-ping', 'opacity-30');
+            }
+        }
+
+        function updateStatus(msg, colorClass) {
+            els.status.textContent = msg;
+            els.status.className = `px-4 py-1.5 rounded-full bg-black/60 backdrop-blur text-xs font-mono transition-colors duration-300 border border-white/5 ${colorClass}`;
         }
         
         // Örnek Metin
-        sourceText.value = "Merhaba! Mikrofonunu test ediyoruz.\n\nLütfen bu metni normal bir hızda okumaya başla. Aşağıdaki yeşil kutuda senin söylediklerini anlık olarak yazacağım. \n\nEğer ben duyduğum kelimeyi metinde bulursam, otomatik olarak aşağı kayacağım. Hadi başlayalım!";
+        els.source.value = "Hoş geldin! V3 Güncellemesi devrede.\n\nArtık 'hakkında' gibi kelimeler metnin içinde birden fazla kez geçse bile sistem kafasına göre atlamayacak. Sadece senin okuduğun satırı ve hemen önündeki birkaç kelimeyi takip edecek.\n\nBuna 'Kısa Tasma' teknolojisi diyoruz. Böylece kontrol tamamen sende, sistem sadece seni takip eder, önüne geçmez.\n\nHadi test edelim!";
+
     </script>
 </body>
 </html>
