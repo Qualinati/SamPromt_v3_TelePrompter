@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teleprompter Pro V9 (Masterpiece)</title>
+    <title>Teleprompter Pro V10 (Endgame)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script>
@@ -13,9 +13,9 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
                     colors: {
-                        accent: { DEFAULT: '#F59E0B', dark: '#D97706' }, // Amber
-                        darkbg: '#0F172A', // Slate 900
-                        panel: '#1E293B', // Slate 800
+                        accent: { DEFAULT: '#FCD34D', dark: '#F59E0B' }, // Daha parlak sarı
+                        darkbg: '#000000', // Zifiri Siyah (OLED)
+                        panel: '#111111', // Koyu Gri Panel
                     }
                 }
             }
@@ -23,205 +23,175 @@
     </script>
     <style>
         :root { 
-            --prompter-font-size: 4.5rem; 
-            --prompter-width: 80%; /* Metin genişliği */
-        }
-        
-        /* Özel Slider Stili */
-        input[type=range] {
-            -webkit-appearance: none; background: transparent; cursor: pointer;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #F59E0B; margin-top: -6px; box-shadow: 0 0 10px rgba(245,158,11,0.5);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; background: #475569; border-radius: 2px;
+            --prompter-font-size: 5rem; /* Varsayılan dev font */
+            --prompter-width: 85%; 
         }
 
-        /* Scrollbar Gizle */
+        /* --- KAYDIRMA ÇUBUKLARI (SLIDERS) --- */
+        input[type=range] { -webkit-appearance: none; background: transparent; cursor: pointer; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #FCD34D; margin-top: -7px; box-shadow: 0 0 10px rgba(252, 211, 77, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; background: #333; border-radius: 2px;
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* PROMPTER ALANI */
+
+        /* --- PROMPTER EKRANI --- */
         #prompter-view {
-            display: none; /* JS ile açılacak */
-            position: fixed; inset: 0; z-index: 50;
-            background: black;
+            display: none; position: fixed; inset: 0; z-index: 50; background: black;
         }
 
         #prompter-text-container {
             scroll-behavior: smooth;
             height: 100vh;
             overflow-y: auto;
-            padding-top: 45vh; /* Ortada başlasın */
-            padding-bottom: 50vh;
-            max-width: var(--prompter-width); /* Genişlik ayarı */
-            margin: 0 auto;
-            /* Maskeleme (Fade effect) */
-            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+            padding-top: 45vh; padding-bottom: 50vh;
+            max-width: var(--prompter-width); margin: 0 auto;
+            /* Maskeleme kaldırıldı - Videodaki gibi net olsun */
         }
         
+        /* --- KELİME STİLLERİ (FİNAL AYAR) --- */
         .prompter-word {
             display: inline-block;
-            opacity: 0.5; 
-            color: #94A3B8;
-            transition: all 0.15s ease-out;
-            margin-right: 0.25em; margin-bottom: 0.5em;
+            /* BEKLENEN METİN: BEMBEYAZ ve NET */
+            color: #FFFFFF; 
+            opacity: 1; 
+            transition: color 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
+            margin-right: 0.25em; margin-bottom: 0.4em;
             font-size: var(--prompter-font-size);
-            font-weight: 700;
-            line-height: 1.4;
+            font-weight: 600;
+            line-height: 1.3;
         }
 
+        /* AKTİF KELİME */
         .highlighted-word {
-            color: #FCD34D; /* Amber Parlak */
-            text-shadow: 0 0 40px rgba(245, 158, 11, 0.8);
+            color: #FCD34D; /* Parlak Sarı */
             transform: scale(1.1);
-            opacity: 1 !important;
-            filter: brightness(1.3);
+            font-weight: 800;
+            text-shadow: 0 0 30px rgba(253, 224, 71, 0.6);
         }
 
-        .read-word { opacity: 0.1; filter: blur(2px); color: #475569; }
+        /* OKUNMUŞ KELİME (GEÇMİŞ) */
+        .read-word {
+            opacity: 0.2; /* İyice öldür */
+            color: #555;
+            filter: blur(0.5px);
+        }
         
-        /* AYNA MODU */
-        .mirror-x { transform: scaleX(-1); }
-        .mirror-y { transform: scaleY(-1); }
-        .mirror-xy { transform: scale(-1, -1); }
-
-        /* ODAK REHBERİ (FOCUS GUIDES) */
-        .focus-guide {
-            position: fixed; top: 50%; width: 100%; height: 0;
-            border-top: 2px dashed rgba(245, 158, 11, 0.3);
-            pointer-events: none; transform: translateY(-50%);
-            display: flex; justify-content: space-between; align-items: center;
+        /* --- ODAK OKLARI (VİDEODAKİ GİBİ) --- */
+        .focus-guide-line {
+            position: fixed; top: 50%; left: 0; right: 0; 
+            border-top: 1px dashed rgba(255, 255, 255, 0.15); pointer-events: none;
         }
         .focus-arrow {
-            width: 0; height: 0; 
-            border-top: 15px solid transparent; border-bottom: 15px solid transparent;
+            position: fixed; top: 50%; transform: translateY(-50%);
+            width: 0; height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            filter: drop-shadow(0 0 10px rgba(252, 211, 77, 0.5));
         }
-        .focus-arrow-left { border-left: 20px solid rgba(245, 158, 11, 0.8); margin-left: 20px; }
-        .focus-arrow-right { border-right: 20px solid rgba(245, 158, 11, 0.8); margin-right: 20px; }
+        .arrow-left { left: 20px; border-left: 30px solid #FCD34D; }
+        .arrow-right { right: 20px; border-right: 30px solid #FCD34D; }
+
+        .mirror-x { transform: scaleX(-1); }
+        .mirror-y { transform: scaleY(-1); }
     </style>
 </head>
-<body class="bg-darkbg text-gray-200 font-sans min-h-screen flex flex-col overflow-hidden selection:bg-accent selection:text-black">
+<body class="bg-panel text-gray-200 font-sans min-h-screen flex flex-col overflow-hidden selection:bg-accent selection:text-black">
 
-    <header class="bg-panel border-b border-white/10 p-4 shadow-xl z-40 relative">
-        <div class="container mx-auto flex flex-wrap items-center justify-between gap-4">
+    <header class="bg-[#111] border-b border-white/10 p-4 shadow-2xl z-40 relative">
+        <div class="container mx-auto flex flex-wrap items-center justify-between gap-6">
             
-            <div class="flex items-center gap-2 mr-4">
-                <div class="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded flex items-center justify-center font-bold text-black">T</div>
-                <div>
-                    <h1 class="font-bold text-lg leading-none tracking-tight">Teleprompter</h1>
-                    <span class="text-[0.6rem] text-amber-500 uppercase font-bold tracking-widest">V9 MASTERPIECE</span>
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-accent rounded flex items-center justify-center text-black font-extrabold text-xl shadow-[0_0_15px_rgba(252,211,77,0.4)]">T</div>
+                <div class="hidden md:block">
+                    <h1 class="font-bold text-lg leading-none text-white tracking-tight">Teleprompter</h1>
+                    <span class="text-[0.6rem] text-accent uppercase font-bold tracking-[0.2em]">V10 ENDGAME</span>
                 </div>
             </div>
 
-            <div class="flex-1 flex items-center gap-6 overflow-x-auto no-scrollbar py-1">
+            <div class="flex-1 flex items-center gap-8 overflow-x-auto no-scrollbar py-2 px-4 bg-white/5 rounded-lg border border-white/5 mx-4">
                 
-                <div class="flex flex-col gap-1 min-w-[100px]">
-                    <label class="text-[0.65rem] uppercase font-bold text-gray-500">Yansıtma</label>
-                    <select id="flip-select" onchange="updateFlip()" class="bg-black/30 border border-white/10 rounded px-2 py-1 text-xs text-gray-300 focus:border-amber-500 outline-none">
-                        <option value="">Yok (Normal)</option>
-                        <option value="mirror-x">Yatay (Ayna)</option>
-                        <option value="mirror-y">Dikey</option>
-                        <option value="mirror-xy">Tam Ters (180°)</option>
-                    </select>
+                <div class="flex flex-col gap-1 min-w-[140px]">
+                    <div class="flex justify-between text-[0.65rem] font-bold text-gray-400 uppercase">
+                        <span>Yazı Boyutu</span> <span id="font-val" class="text-white">5.0</span>
+                    </div>
+                    <input type="range" min="3" max="10" step="0.5" value="5.0" oninput="updateFont(this.value)">
                 </div>
 
-                <div class="flex flex-col gap-1 min-w-[120px]">
-                    <label class="text-[0.65rem] uppercase font-bold text-gray-500 flex justify-between">
-                        <span>Font</span> <span id="font-val">4.5</span>
-                    </label>
-                    <input type="range" min="2" max="10" step="0.5" value="4.5" oninput="updateFont(this.value)">
-                </div>
-
-                <div class="flex flex-col gap-1 min-w-[120px]">
-                    <label class="text-[0.65rem] uppercase font-bold text-gray-500 flex justify-between">
-                        <span>Genişlik</span> <span id="width-val">80%</span>
-                    </label>
-                    <input type="range" min="30" max="100" step="5" value="80" oninput="updateWidth(this.value)">
+                <div class="flex flex-col gap-1 min-w-[140px]">
+                    <div class="flex justify-between text-[0.65rem] font-bold text-gray-400 uppercase">
+                        <span>Genişlik</span> <span id="width-val" class="text-white">85%</span>
+                    </div>
+                    <input type="range" min="40" max="100" step="5" value="85" oninput="updateWidth(this.value)">
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-[0.65rem] uppercase font-bold text-gray-500">Odak</label>
-                    <button id="focus-btn" onclick="toggleFocusGuide()" class="bg-amber-500/10 text-amber-500 border border-amber-500/50 px-3 py-1 rounded text-xs hover:bg-amber-500 hover:text-black transition">
-                        Açık
-                    </button>
+                    <span class="text-[0.65rem] font-bold text-gray-400 uppercase">Yansıtma</span>
+                    <button id="mirror-btn" onclick="toggleMirror()" class="text-xs bg-black border border-white/20 px-3 py-1 rounded text-gray-300 hover:text-white hover:border-accent transition">Normal</button>
+                </div>
+                
+                 <div class="flex flex-col gap-1">
+                    <span class="text-[0.65rem] font-bold text-gray-400 uppercase">Çift Ekran</span>
+                    <button onclick="openDualScreen()" class="text-xs bg-black border border-white/20 px-3 py-1 rounded text-gray-300 hover:text-white hover:border-blue-500 transition">Pencere Aç</button>
                 </div>
 
-                <div class="flex flex-col gap-1">
-                    <label class="text-[0.65rem] uppercase font-bold text-gray-500">Sayaç</label>
-                    <button id="timer-btn" onclick="toggleTimer()" class="bg-black/30 text-gray-400 border border-white/10 px-3 py-1 rounded text-xs hover:text-white transition">
-                        Kapalı
-                    </button>
-                </div>
             </div>
 
-            <button onclick="startPrompter()" class="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold px-6 py-2 rounded shadow-lg shadow-amber-900/40 hover:scale-105 transition transform flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <button onclick="startPrompter()" class="bg-accent hover:bg-yellow-400 text-black font-extrabold px-8 py-3 rounded shadow-[0_0_20px_rgba(252,211,77,0.3)] hover:scale-105 transition transform flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 BAŞLAT
             </button>
         </div>
     </header>
 
-    <main class="flex-1 container mx-auto p-6 flex flex-col overflow-hidden">
-        <div class="bg-panel border border-white/5 rounded-t-xl flex items-center p-2 gap-2 text-gray-400 text-sm">
-            <div class="flex gap-1 border-r border-white/10 pr-2">
-                <span class="p-1 hover:bg-white/5 rounded cursor-pointer"><b>B</b></span>
-                <span class="p-1 hover:bg-white/5 rounded cursor-pointer"><i>I</i></span>
-                <span class="p-1 hover:bg-white/5 rounded cursor-pointer"><u>U</u></span>
+    <main class="flex-1 container mx-auto p-4 md:p-8 flex flex-col overflow-hidden max-w-6xl">
+        <div class="bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl flex flex-col h-full overflow-hidden">
+            <div class="bg-[#222] border-b border-white/5 p-2 flex items-center justify-between px-4">
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-widest">Senaryo Editörü</div>
+                <div class="text-xs font-mono text-gray-400 bg-white/5 px-2 py-1 rounded" id="word-count">0 Kelime</div>
             </div>
-            <div class="flex gap-1 border-r border-white/10 pr-2">
-                <span class="p-1 hover:bg-white/5 rounded cursor-pointer">≡</span>
-                <span class="p-1 hover:bg-white/5 rounded cursor-pointer">◂</span>
+            
+            <textarea id="source-text" class="flex-1 w-full bg-[#0a0a0a] p-8 outline-none resize-none text-xl md:text-2xl text-white font-sans leading-relaxed selection:bg-accent/30 placeholder-gray-700" placeholder="Metninizi buraya yapıştırın..."></textarea>
+            
+            <div class="bg-[#222] border-t border-white/5 p-2 text-center">
+                <p class="text-[0.65rem] text-gray-500 font-mono">
+                    <span class="text-accent">İPUCU:</span> [BOŞLUK] Mikrofon | [YÖN TUŞLARI] Manuel Sar | [ESC] Çıkış
+                </p>
             </div>
-            <div class="flex-1"></div>
-            <div class="flex items-center gap-2 text-xs font-mono text-gray-500">
-                <span id="word-count">0 Kelime</span>
-            </div>
-        </div>
-        
-        <textarea id="source-text" class="flex-1 w-full bg-black/40 p-6 border border-white/5 border-t-0 rounded-b-xl outline-none resize-none text-lg text-gray-300 focus:bg-black/60 transition font-mono leading-relaxed" placeholder="Metninizi buraya yapıştırın veya yazın..."></textarea>
-        
-        <div class="mt-4 text-center text-xs text-gray-500">
-            <span class="px-2 py-1 bg-white/5 rounded">İPUCU</span> Boşluk tuşu: Mikrofon | Yön tuşları: Manuel Kaydırma | ESC: Çıkış
         </div>
     </main>
 
     <section id="prompter-view">
-        <div id="focus-guide" class="focus-guide">
-            <div class="focus-arrow focus-arrow-right"></div>
-            <div class="flex-1 border-t border-amber-500/20"></div>
-            <div class="focus-arrow focus-arrow-left"></div>
-        </div>
+        <div class="focus-guide-line"></div>
+        <div class="focus-arrow arrow-left"></div>
+        <div class="focus-arrow arrow-right"></div>
 
-        <div class="fixed top-5 right-5 z-50 flex flex-col items-end gap-2 pointer-events-none">
-            <div id="hud-timer" class="hidden text-4xl font-mono font-bold text-amber-500 drop-shadow-lg tabular-nums">00:00:00</div>
-            <div id="status-bubble" class="px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold rounded border border-amber-500/30 backdrop-blur">HAZIR</div>
-        </div>
+        <div class="fixed top-6 right-8 z-50 font-mono text-3xl font-bold text-accent tabular-nums opacity-80" id="hud-timer">00:00:00</div>
 
         <div id="prompter-text-container" class="no-scrollbar text-center select-none">
             </div>
 
-        <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-4 z-50 opacity-0 hover:opacity-100 transition-opacity duration-300">
-            <button onclick="stopPrompter()" class="bg-gray-800 p-4 rounded-full text-white hover:bg-red-600 transition shadow-xl"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <button id="mic-btn" onclick="toggleMicrophone()" class="bg-amber-500 p-6 rounded-full text-black hover:scale-110 transition shadow-xl ring-4 ring-amber-500/30"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg></button>
-            <button onclick="openDualScreen()" class="bg-gray-800 p-4 rounded-full text-blue-400 hover:bg-blue-600 hover:text-white transition shadow-xl" title="Çift Ekran"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg></button>
+        <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-6 z-50 opacity-0 hover:opacity-100 transition-opacity duration-500 bg-black/80 px-6 py-3 rounded-full border border-white/10 backdrop-blur-md">
+            <button onclick="stopPrompter()" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <div class="w-px h-6 bg-white/20"></div>
+            <button id="mic-btn" onclick="toggleMicrophone()" class="bg-accent text-black p-3 rounded-full hover:scale-110 transition shadow-[0_0_15px_rgba(252,211,77,0.5)]"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg></button>
+            <div class="w-px h-6 bg-white/20"></div>
+            <button onclick="resetReadingPos()" class="text-gray-400 hover:text-white transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>
         </div>
     </section>
 
     <script>
-        // === GLOBAL DEĞİŞKENLER ===
+        // === CORE ELEMENTS ===
         const els = {
             source: document.getElementById('source-text'),
             wordCount: document.getElementById('word-count'),
             prompterView: document.getElementById('prompter-view'),
             container: document.getElementById('prompter-text-container'),
-            status: document.getElementById('status-bubble'),
             hudTimer: document.getElementById('hud-timer'),
-            focusGuide: document.getElementById('focus-guide'),
-            timerBtn: document.getElementById('timer-btn'),
-            focusBtn: document.getElementById('focus-btn'),
             micBtn: document.getElementById('mic-btn')
         };
 
@@ -229,69 +199,48 @@
             recognition: null, isListening: false, shouldListen: false,
             words: [], cleanText: [], currentIndex: 0,
             timerInterval: null, startTime: null, elapsedTime: 0,
-            childWindow: null,
-            timerEnabled: false, focusEnabled: true
+            childWindow: null, isMirrored: false
         };
 
-        // === 1. AYAR YÖNETİMİ (KOKPİT) ===
+        // === AYARLAR ===
         function updateFont(val) {
             document.documentElement.style.setProperty('--prompter-font-size', `${val}rem`);
-            document.getElementById('font-val').textContent = val;
-            syncChildStyles();
+            document.getElementById('font-val').textContent = parseFloat(val).toFixed(1);
+            if(state.childWindow) state.childWindow.document.documentElement.style.setProperty('--prompter-font-size', `${val}rem`);
         }
-
         function updateWidth(val) {
             document.documentElement.style.setProperty('--prompter-width', `${val}%`);
             document.getElementById('width-val').textContent = `${val}%`;
-            syncChildStyles();
+            if(state.childWindow) state.childWindow.document.documentElement.style.setProperty('--prompter-width', `${val}%`);
         }
-
-        function updateFlip() {
-            const val = document.getElementById('flip-select').value;
-            els.container.className = `no-scrollbar text-center select-none ${val}`;
+        function toggleMirror() {
+            state.isMirrored = !state.isMirrored;
+            const cls = state.isMirrored ? 'mirror-x' : '';
+            els.container.className = `no-scrollbar text-center select-none ${cls}`;
+            document.getElementById('mirror-btn').textContent = state.isMirrored ? "Ayna (Yatay)" : "Normal";
+            document.getElementById('mirror-btn').className = state.isMirrored ? "text-xs bg-accent border border-accent px-3 py-1 rounded text-black font-bold" : "text-xs bg-black border border-white/20 px-3 py-1 rounded text-gray-300 hover:text-white";
             if(state.childWindow) state.childWindow.document.getElementById('prompter-text-container').className = els.container.className;
         }
 
-        function toggleTimer() {
-            state.timerEnabled = !state.timerEnabled;
-            els.timerBtn.textContent = state.timerEnabled ? "Açık" : "Kapalı";
-            els.timerBtn.className = state.timerEnabled ? "bg-amber-500 text-black px-3 py-1 rounded text-xs font-bold" : "bg-black/30 text-gray-400 border border-white/10 px-3 py-1 rounded text-xs";
-            if(state.timerEnabled && !els.prompterView.style.display === 'none') els.hudTimer.classList.remove('hidden');
-        }
-
-        function toggleFocusGuide() {
-            state.focusEnabled = !state.focusEnabled;
-            els.focusBtn.textContent = state.focusEnabled ? "Açık" : "Kapalı";
-            els.focusBtn.className = state.focusEnabled ? "bg-amber-500/10 text-amber-500 border border-amber-500/50 px-3 py-1 rounded text-xs hover:bg-amber-500 hover:text-black transition" : "bg-black/30 text-gray-400 border border-white/10 px-3 py-1 rounded text-xs";
-            els.focusGuide.style.display = state.focusEnabled ? 'flex' : 'none';
-        }
-
-        // === 2. EDİTÖR İŞLEMLERİ ===
+        // === STORAGE & INIT ===
         els.source.addEventListener('input', () => {
             const text = els.source.value;
             localStorage.setItem('prompterText', text);
-            const count = text.trim().split(/\s+/).filter(n => n).length;
-            els.wordCount.textContent = `${count} Kelime`;
+            els.wordCount.textContent = `${text.trim().split(/\s+/).filter(n=>n).length} Kelime`;
         });
-
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('prompterText');
-            if(saved) { 
-                els.source.value = saved; 
-                els.wordCount.textContent = `${saved.split(/\s+/).length} Kelime`;
-            } else {
-                els.source.value = "Hoş geldin! Bu V9 Masterpiece sürümüdür.\n\nYukarıdaki panelden tüm ayarları anlık olarak yapabilirsin:\n- Font büyüklüğü\n- Metin genişliği\n- Ayna modu\n\nBaşlat'a bas ve profesyonelliği hisset!";
-            }
+            els.source.value = saved || "Hoş geldin! V10 Endgame sürümü.\n\nArtık metinler bembeyaz ve net. Kontrast en üst seviyede.\n\nSarı oklar odaklanmanı kolaylaştırır.\n\nBaşlat'a bas ve profesyonel deneyimi yaşa!";
+            els.source.dispatchEvent(new Event('input'));
         });
 
-        // === 3. CORE (BAŞLAT/DURDUR) ===
+        // === BAŞLAT / DURDUR ===
         function startPrompter() {
             const text = els.source.value.trim();
-            if (!text) return alert("Lütfen metin girin!");
+            if (!text) return alert("Metin yok!");
 
-            // DOM Hazırla
-            els.container.innerHTML = '';
-            state.words = []; state.cleanText = []; state.currentIndex = 0; resetTimer();
+            // Prepare DOM
+            els.container.innerHTML = ''; state.words = []; state.cleanText = []; state.currentIndex = 0; resetTimer();
 
             text.split(/\s+/).forEach(raw => {
                 if(!raw) return;
@@ -303,44 +252,35 @@
                 state.cleanText.push(raw.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()"']/g,""));
             });
 
-            // Ekranı Aç
             els.prompterView.style.display = 'block';
-            if(state.timerEnabled) els.hudTimer.classList.remove('hidden');
             if(state.childWindow && !state.childWindow.closed) syncChildContent();
 
-            // Sesi Başlat
             if (!state.recognition) initSpeech();
             startTimerLogic();
         }
 
         function stopPrompter() {
-            state.shouldListen = false; 
-            if (state.recognition) state.recognition.stop();
-            els.prompterView.style.display = 'none';
-            stopTimerLogic();
+            state.shouldListen = false; if (state.recognition) state.recognition.stop();
+            els.prompterView.style.display = 'none'; stopTimerLogic();
         }
 
-        // === 4. SES MOTORU (V7 ENGINE) ===
+        // === SPEECH ENGINE (OPTIMIZED) ===
         function initSpeech() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return alert("Chrome kullanın.");
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            state.recognition = new SpeechRecognition();
+            if (!('webkitSpeechRecognition' in window)) return alert("Chrome kullanın.");
+            state.recognition = new webkitSpeechRecognition();
             state.recognition.continuous = true;
             state.recognition.interimResults = true;
             state.recognition.lang = 'tr-TR';
 
-            state.recognition.onstart = () => {
-                state.isListening = true; updateMicUI(true); startTimerLogic();
-                updateStatus("DİNLENİYOR", "text-green-400 border-green-500/30 bg-green-900/20");
-            };
-            state.recognition.onend = () => {
+            state.recognition.onstart = () => { state.isListening = true; updateMicUI(true); startTimerLogic(); };
+            state.recognition.onend = () => { 
                 state.isListening = false; stopTimerLogic();
-                if (state.shouldListen) { try { state.recognition.start(); } catch(e) {} } 
-                else { updateMicUI(false); updateStatus("DURAKLATILDI", "text-gray-400 border-white/10"); }
+                if (state.shouldListen) try { state.recognition.start(); } catch(e) {}
+                else updateMicUI(false);
             };
-            state.recognition.onresult = (event) => {
+            state.recognition.onresult = (e) => {
                 let transcript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) transcript += event.results[i][0].transcript;
+                for (let i = e.resultIndex; i < e.results.length; ++i) transcript += e.results[i][0].transcript;
                 if (transcript.trim()) handleInput(transcript.toLowerCase().trim());
             };
         }
@@ -359,9 +299,7 @@
                 if (!isMatch && targetWord === lastWord) isMatch = true;
 
                 if (isMatch) {
-                    scrollToIndex(i);
-                    state.currentIndex = i + 1;
-                    return;
+                    scrollToIndex(i); state.currentIndex = i + 1; return;
                 }
             }
         }
@@ -380,27 +318,19 @@
             });
         }
 
-        // === 5. YARDIMCI FONKSİYONLAR ===
+        // === UTILS ===
         function toggleMicrophone() {
             if (!state.recognition) initSpeech();
             if (state.shouldListen) { state.shouldListen = false; state.recognition.stop(); }
             else { state.shouldListen = true; try { state.recognition.start(); } catch(e) {} }
         }
-
         function updateMicUI(isActive) {
             els.micBtn.className = isActive 
-                ? "bg-red-600 p-6 rounded-full text-white hover:scale-110 transition shadow-xl ring-4 ring-red-500/30 animate-pulse"
-                : "bg-amber-500 p-6 rounded-full text-black hover:scale-110 transition shadow-xl ring-4 ring-amber-500/30";
+                ? "bg-red-600 p-3 rounded-full text-white hover:scale-110 transition shadow-xl animate-pulse"
+                : "bg-accent p-3 rounded-full text-black hover:scale-110 transition shadow-xl";
         }
-
-        function updateStatus(msg, classes) {
-            els.status.textContent = msg;
-            els.status.className = `px-3 py-1 rounded text-xs font-bold border backdrop-blur transition-colors ${classes}`;
-        }
-
-        // Timer Logic
         function startTimerLogic() {
-            if(!state.timerEnabled || state.timerInterval) return;
+            if(state.timerInterval) return;
             state.startTime = Date.now() - state.elapsedTime;
             state.timerInterval = setInterval(() => {
                 state.elapsedTime = Date.now() - state.startTime;
@@ -409,50 +339,27 @@
         }
         function stopTimerLogic() { clearInterval(state.timerInterval); state.timerInterval = null; }
         function resetTimer() { stopTimerLogic(); state.elapsedTime = 0; els.hudTimer.textContent = "00:00:00"; }
+        function resetReadingPos() { scrollToIndex(0); state.currentIndex = 0; }
 
-        // Klavye
-        document.addEventListener('keydown', (e) => {
-            if (els.prompterView.style.display === 'none') return;
-            if (e.code === 'Space') { e.preventDefault(); toggleMicrophone(); }
-            if (e.code === 'ArrowRight' || e.code === 'ArrowDown') { e.preventDefault(); manualMove(1); }
-            if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') { e.preventDefault(); manualMove(-1); }
-            if (e.code === 'Escape') stopPrompter();
-        });
-
-        function manualMove(dir) {
-            let next = Math.max(0, Math.min(state.currentIndex + dir, state.words.length - 1));
-            scrollToIndex(next); state.currentIndex = next;
-        }
-
-        // === 6. ÇİFT EKRAN (DUAL SCREEN) ===
+        // === DUAL SCREEN ===
         function openDualScreen() {
             state.childWindow = window.open("", "PrompterChild", "width=800,height=600");
             if (!state.childWindow) return alert("Pop-up izni verin!");
             
-            // CSS Kopyala
             const styles = document.getElementsByTagName('style')[0].innerHTML;
             const tailwind = document.querySelector('script[src*="tailwindcss"]').outerHTML;
-            
-            state.childWindow.document.write(`
-                <html><head>${tailwind}<style>${styles} body{background:black;overflow:hidden;} #prompter-text-container{padding-top:45vh;}</style></head>
-                <body><div id="prompter-text-container" class="${els.container.className}"></div></body></html>
-            `);
+            state.childWindow.document.write(`<html><head>${tailwind}<style>${styles} body{background:black;overflow:hidden;} #prompter-text-container{padding-top:45vh;}</style></head><body><div id="prompter-text-container" class="${els.container.className}"></div></body></html>`);
             state.childWindow.document.close();
-            
-            setTimeout(syncChildContent, 500);
-            syncChildStyles();
+            setTimeout(syncChildContent, 500); syncChildStyles();
         }
-
-        function syncChildContent() {
-            if(!state.childWindow || state.childWindow.closed) return;
-            state.childWindow.document.getElementById('prompter-text-container').innerHTML = els.container.innerHTML;
-        }
-        function syncChildScroll(index) {
-            if(!state.childWindow || state.childWindow.closed) return;
-            const childWords = state.childWindow.document.getElementsByClassName('prompter-word');
-            if(childWords[index]) {
-                Array.from(childWords).forEach((w, i) => w.className = state.words[i].className);
-                childWords[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        function syncChildContent() { if(state.childWindow && !state.childWindow.closed) state.childWindow.document.getElementById('prompter-text-container').innerHTML = els.container.innerHTML; }
+        function syncChildScroll(idx) { 
+            if(state.childWindow && !state.childWindow.closed) {
+                const words = state.childWindow.document.getElementsByClassName('prompter-word');
+                if(words[idx]) {
+                    Array.from(words).forEach((w, i) => w.className = state.words[i].className);
+                    words[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
         }
         function syncChildStyles() {
@@ -461,6 +368,15 @@
             root.style.setProperty('--prompter-font-size', getComputedStyle(document.documentElement).getPropertyValue('--prompter-font-size'));
             root.style.setProperty('--prompter-width', getComputedStyle(document.documentElement).getPropertyValue('--prompter-width'));
         }
+
+        // Klavye
+        document.addEventListener('keydown', (e) => {
+            if (els.prompterView.style.display === 'none') return;
+            if (e.code === 'Space') { e.preventDefault(); toggleMicrophone(); }
+            if (e.code === 'ArrowRight' || e.code === 'ArrowDown') { e.preventDefault(); let n = Math.min(state.currentIndex + 1, state.words.length-1); scrollToIndex(n); state.currentIndex = n; }
+            if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') { e.preventDefault(); let n = Math.max(0, state.currentIndex - 1); scrollToIndex(n); state.currentIndex = n; }
+            if (e.code === 'Escape') stopPrompter();
+        });
     </script>
 </body>
 </html>
