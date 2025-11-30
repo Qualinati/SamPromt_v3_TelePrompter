@@ -2,8 +2,8 @@
 <html lang="tr" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> SamPrompt Ultimate Fluidity </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SamPrompt Sync Master </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Roboto+Slab:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script>
@@ -17,7 +17,7 @@
                         mono: ['JetBrains Mono', 'monospace'] 
                     },
                     colors: {
-                        accent: { DEFAULT: '#06b6d4', glow: '#22d3ee' }, // Cyan
+                        accent: { DEFAULT: '#06b6d4', glow: '#22d3ee' }, // Electric Cyan
                         darkbg: '#020617', 
                         panel: '#0f172a', 
                     }
@@ -36,11 +36,13 @@
 
         /* UI RESET */
         body { overflow: hidden; background-color: #020617; }
+        
         input[type=range] { -webkit-appearance: none; background: transparent; cursor: pointer; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #06b6d4; margin-top: -6px; box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
         }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #1e293b; border-radius: 2px; }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -49,41 +51,41 @@
 
         #prompter-text-container {
             height: 100vh;
-            overflow-y: hidden; /* Scroll JS tarafından yönetilecek (Transform) */
-            position: relative;
-        }
-        
-        #scrolling-layer {
-            /* Metni taşıyan katman */
+            overflow-y: auto; /* JS scroll */
+            /* Padding: Ekranın yarısı kadar boşluk bırak ki ilk ve son satır ortaya gelebilsin */
             padding-top: 50vh;
             padding-bottom: 50vh;
             max-width: var(--prompter-width); 
             margin: 0 auto;
             text-align: center;
-            will-change: transform; /* GPU Hızlandırma */
+            will-change: scrollTop; 
         }
-
+        
         .prompter-word {
             display: inline-block;
             color: #ffffff; 
             opacity: 0.2; 
             filter: blur(2.5px); 
-            transition: opacity 0.4s ease, filter 0.4s ease, color 0.2s;
+            transition: opacity 0.3s ease, filter 0.3s ease, color 0.1s;
             margin-right: 0.25em; margin-bottom: 0.2em;
             font-size: var(--prompter-font-size);
             font-weight: var(--prompter-weight);
             line-height: var(--prompter-line-height);
         }
 
-        /* ODAK ALANINDAKİ METİN */
-        .in-focus-zone { opacity: 1 !important; filter: blur(0) !important; }
+        /* ODAK ALANINDAKİ METİN (Netleşir) */
+        .in-focus-zone {
+            opacity: 1 !important;
+            filter: blur(0) !important;
+        }
 
-        /* SESLİ MOD: Aktif Kelime */
+        /* SESLİ MOD: Aktif Kelime (Mavi) */
         .voice-active {
             color: #22d3ee !important; 
-            text-shadow: 0 0 40px rgba(34, 211, 238, 0.8);
-            transform: scale(1.05);
-            transition: transform 0.3s ease;
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
+            transform: scale(1.1);
+            z-index: 10; position: relative;
+            transition: transform 0.1s ease;
         }
 
         /* ODAK BANDI */
@@ -103,9 +105,11 @@
         }
         .ind-l { left: 10px; border-left: 15px solid #06b6d4; }
         .ind-r { right: 10px; border-right: 15px solid #06b6d4; }
-        
-        /* Ayna Modu Sınıfları */
+
         .mirror-x { transform: scaleX(-1); }
+        
+        /* Arama Highlight */
+        ::selection { background: rgba(6, 182, 212, 0.3); color: white; }
     </style>
 </head>
 <body class="bg-darkbg text-gray-200 font-sans min-h-screen flex flex-col selection:bg-accent selection:text-white">
@@ -120,7 +124,7 @@
                 <h1 class="text-xl font-bold text-white leading-tight tracking-wide">SamPrompt</h1>
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-[0.6rem] bg-white/5 text-gray-400 px-1.5 rounded tracking-wider border border-white/5">TELEPROMPTER</span>
-                    <span class="text-[0.6rem] text-cyan-400 font-bold tracking-widest uppercase">V27 FLUID</span>
+                    <span class="text-[0.6rem] text-cyan-400 font-bold tracking-widest uppercase">V28 SYNC</span>
                 </div>
             </div>
         </div>
@@ -128,7 +132,7 @@
             <div class="hidden md:flex flex-col items-end mr-2">
                 <span class="text-[0.6rem] text-gray-500 uppercase tracking-widest">LC WAIKIKI KURUMSAL AKADEMİ</span>
             </div>
-            <button onclick="toggleAbout()" class="text-xs font-bold text-cyan-400 border border-cyan-500/40 bg-cyan-500/10 px-5 py-2 rounded hover:bg-cyan-500/20 hover:shadow-[0_0_15px_rgba(6,182,212,0.2)] transition duration-300">HAKKINDA</button>
+            <button onclick="toggleAbout()" class="text-xs font-bold text-gray-400 hover:text-cyan-400 border border-white/10 px-4 py-2 rounded hover:bg-white/5 transition">HAKKINDA</button>
         </div>
     </header>
 
@@ -142,21 +146,19 @@
                     <div class="h-5 w-px bg-white/10 mx-2"></div>
                     
                     <div class="relative group">
-                        <input type="text" id="search-box" placeholder="Metinde ara... (Enter)" 
+                        <input type="text" id="search-box" placeholder="Ara... (Enter)" 
                                onkeydown="if(event.key === 'Enter') findNext(this.value)"
                                onfocus="state.isSearching = true" 
                                onblur="state.isSearching = false"
-                               class="bg-black/30 border border-white/10 rounded-full text-xs text-white pl-8 pr-3 py-1.5 w-40 focus:w-56 transition-all outline-none focus:border-cyan-500/50 focus:bg-black/50">
+                               class="bg-black/30 border border-white/10 rounded-full text-xs text-white pl-8 pr-3 py-1.5 w-32 focus:w-48 transition-all outline-none focus:border-cyan-500/50 focus:bg-black/50">
                         <svg class="w-3 h-3 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         <span id="search-count" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[0.6rem] text-gray-500"></span>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <span id="word-count" class="text-[0.65rem] font-mono text-gray-500 bg-white/5 px-2 py-1 rounded border border-white/5">0 Kelime</span>
-                </div>
+                <span id="word-count" class="text-[0.65rem] font-mono text-gray-500 bg-white/5 px-2 py-1 rounded border border-white/5">0 Kelime</span>
             </div>
 
-            <textarea id="source-text" class="flex-1 w-full h-full bg-[#020617] p-8 pb-32 outline-none resize-none text-xl md:text-2xl text-gray-200 font-sans leading-relaxed placeholder-gray-700 focus:bg-black transition" spellcheck="false"></textarea>
+            <textarea id="source-text" class="flex-1 w-full h-full bg-[#020617] p-8 pb-32 outline-none resize-none text-xl md:text-2xl text-gray-200 font-sans leading-relaxed placeholder-gray-700 focus:bg-black transition selection:bg-cyan-500/30" spellcheck="false"></textarea>
             
             <div class="bg-[#1e293b] border-t border-white/5 p-4 flex justify-end shrink-0 relative z-20">
                 <button onclick="startPrompter()" class="group bg-accent hover:bg-cyan-400 text-black font-extrabold text-lg px-12 py-3 rounded-lg shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:scale-105 transition transform flex items-center gap-3 ring-1 ring-white/10">
@@ -168,9 +170,8 @@
     </main>
 
     <section id="prompter-view">
-        
         <div class="fixed top-0 left-0 right-0 h-8 z-[70] hover:bg-cyan-500/10 cursor-pointer flex justify-center items-start transition-colors group" onclick="toggleTopBar()">
-            <div class="bg-cyan-900/30 px-6 rounded-b-lg border-b border-r border-l border-cyan-500/20 backdrop-blur"><svg class="w-4 h-4 text-cyan-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
+            <div class="bg-cyan-900/30 px-6 rounded-b-lg border-b border-r border-l border-cyan-500/20 backdrop-blur group-hover:bg-cyan-500/20 transition"><svg class="w-4 h-4 text-cyan-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
         </div>
 
         <div id="top-bar" class="fixed top-0 left-0 right-0 bg-[#020617]/95 backdrop-blur-xl border-b border-white/10 z-[60] px-8 py-4 shadow-2xl transform -translate-y-full transition-transform duration-300 ease-out">
@@ -211,9 +212,7 @@
             <div class="text-[0.65rem] font-bold text-gray-500 mt-1 uppercase tracking-widest bg-black/50 px-2 py-1 rounded inline-block backdrop-blur border border-white/5" id="mode-indicator">HAZIR</div>
         </div>
 
-        <div id="prompter-text-container">
-            <div id="scrolling-layer" class="no-scrollbar select-none"></div>
-        </div>
+        <div id="prompter-text-container" class="no-scrollbar select-none"></div>
 
         <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-6 z-50 bg-[#0f172a]/90 px-8 py-3 rounded-full border border-white/10 backdrop-blur shadow-2xl" onclick="event.stopPropagation()">
             <button onclick="stopPrompter()" class="text-gray-400 hover:text-red-500 p-2 transition" title="Çıkış (ESC)"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -227,24 +226,52 @@
 
     <div id="about-modal" class="fixed inset-0 z-[80] hidden">
         <div class="absolute inset-0 bg-black/95 backdrop-blur-sm transition-opacity opacity-0" id="about-bg" onclick="toggleAbout()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-4 transition-all scale-95 opacity-0" id="about-content">
-            <div class="bg-[#0f172a] rounded-2xl p-8 border border-cyan-500/20 shadow-2xl text-center">
-                <div class="w-14 h-14 bg-accent rounded-xl mx-auto flex items-center justify-center text-black font-black text-3xl mb-4">S</div>
-                <h2 class="text-2xl font-bold text-white">SamPrompt Teleprompter</h2>
-                <p class="text-cyan-500 text-xs font-bold tracking-[0.2em] uppercase mb-6">LC Waikiki Kurumsal Akademi</p>
-                <div class="text-left bg-black/40 p-4 rounded-lg border border-white/5 text-sm text-gray-400 space-y-2">
-                    <p><strong class="text-white">Ses Modu:</strong> Hızınıza göre manyetik olarak akar.</p>
-                    <p><strong class="text-white">Akıllı Akış:</strong> Kelimeye zıplamaz, süzülür.</p>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl p-4 transition-all scale-95 opacity-0" id="about-content">
+            <div class="bg-[#0f172a] rounded-2xl border border-cyan-500/20 shadow-2xl overflow-hidden">
+                <div class="bg-black/40 p-6 border-b border-white/5 flex items-center gap-4">
+                     <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center">
+                        <span class="font-black text-3xl text-cyan-400">S</span>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">SamPrompt <span class="text-cyan-400 font-light">V28</span></h2>
+                        <p class="text-xs text-gray-400 font-bold tracking-widest uppercase mt-1">SYNC MASTER EDITION</p>
+                    </div>
+                    <div class="flex-1"></div>
+                    <button onclick="toggleAbout()" class="text-gray-500 hover:text-white transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
-                <div class="mt-6 pt-4 border-t border-white/10">
-                    <p class="text-lg font-bold text-white">Geliştirici: <span class="text-cyan-400">Samet Sevgili</span></p>
+                
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-cyan-400 text-sm font-bold uppercase mb-3 tracking-wider">ÖZELLİKLER</h3>
+                        <ul class="space-y-3 text-sm text-gray-300">
+                            <li class="flex items-start gap-2"><span class="text-cyan-500">●</span> <span><strong>Sync Engine:</strong> Metin okuma hızınıza kilitlenir, sizi tam ortada bekler.</span></li>
+                            <li class="flex items-start gap-2"><span class="text-cyan-500">●</span> <span><strong>Responsive:</strong> Mobil, Tablet ve Masaüstü uyumlu.</span></li>
+                            <li class="flex items-start gap-2"><span class="text-cyan-500">●</span> <span><strong>Focus Lock:</strong> Sadece odak alanındaki satır netleşir.</span></li>
+                            <li class="flex items-start gap-2"><span class="text-cyan-500">●</span> <span><strong>2. Ekran:</strong> Tek tıkla harici monitöre yansıtma.</span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-cyan-400 text-sm font-bold uppercase mb-3 tracking-wider">KISAYOLLAR</h3>
+                        <ul class="space-y-2 text-xs font-mono text-gray-400 bg-black/30 p-4 rounded-lg border border-white/5">
+                            <li class="flex justify-between"><span>Başlat / Durdur</span> <span class="text-white">ENTER</span></li>
+                            <li class="flex justify-between"><span>Sesli Mod</span> <span class="text-white">SPACE</span></li>
+                            <li class="flex justify-between"><span>Hız Kontrol</span> <span class="text-white">W / S / WHEEL</span></li>
+                            <li class="flex justify-between"><span>Başa / Sona Git</span> <span class="text-white">HOME / END</span></li>
+                            <li class="flex justify-between"><span>Paragraf Atla</span> <span class="text-white">PGUP / PGDN</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-black/40 p-4 border-t border-white/5 text-center">
+                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">LC WAIKIKI KURUMSAL AKADEMİ - EĞİTİM TEKNOLOJİLERİ</p>
+                    <p class="text-sm font-bold text-white">Geliştirici: <span class="text-cyan-400">Samet Sevgili</span></p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'samPrompt_V27_Final';
+        const STORAGE_KEY = 'samPrompt_V28_Sync';
         const DEFAULT_TEXT = `SamPrompt Teleprompter’a hoş geldin!
 Bir hikâye anlatmaya hazır mısın?
 
@@ -281,7 +308,7 @@ Bir hikâye anlatmaya hazır mısın?
         const els = {
             source: document.getElementById('source-text'),
             prompterView: document.getElementById('prompter-view'),
-            scrollingLayer: document.getElementById('scrolling-layer'),
+            container: document.getElementById('prompter-text-container'),
             topBar: document.getElementById('top-bar'),
             hudTimer: document.getElementById('hud-timer'),
             modeIndicator: document.getElementById('mode-indicator'),
@@ -312,14 +339,19 @@ Bir hikâye anlatmaya hazır mısın?
         // INIT
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem(STORAGE_KEY);
-            els.source.value = saved || DEFAULT_TEXT;
+            if(!saved || saved.length < 50) {
+                els.source.value = DEFAULT_TEXT;
+                localStorage.setItem(STORAGE_KEY, DEFAULT_TEXT);
+            } else {
+                els.source.value = saved;
+            }
             updateWordCount();
         });
         els.source.addEventListener('input', () => updateWordCount());
         function updateWordCount() { document.getElementById('word-count').textContent = `${els.source.value.trim().split(/\s+/).length} Kelime`; }
         function manualSave() { localStorage.setItem(STORAGE_KEY, els.source.value); els.saveMsg.classList.remove('opacity-0'); setTimeout(() => els.saveMsg.classList.add('opacity-0'), 2000); }
         
-        // --- AKILLI ARAMA ---
+        // --- SMART SEARCH (LOOPING) ---
         function findNext(term) {
             if(!term) return;
             const text = els.source.value;
@@ -366,25 +398,26 @@ Bir hikâye anlatmaya hazır mısın?
             if(state.childWindow) state.childWindow.document.documentElement.style.setProperty(name, val);
         }
         function setText(id, val) { document.getElementById(id).textContent = val; }
+        
+        // CRITICAL: CENTER PADDING
         function updatePadding() {
-            // Focus Band'ın ortası referans
-            // Transform:translateY ile hareket ediyoruz. Y=0 başlagıç noktası.
-            // Y=0 noktasını focus band'ın ortasına getirmeliyiz.
-            // Focus band top = 50% viewport - height/2
-            // Basitçe margin-top ile de çözülür ama padding daha güvenli.
-            // Biz metnin ilk satırını ekranın ortasına (focus band içine) oturtmak istiyoruz.
-            // Bu yüzden padding yok, margin-top var.
-            // Ama dur, transform ile Y'yi eksiye çekiyoruz.
-            // Başlangıç (Y=0) durumunda metin tam ortada olmalı.
-            // Bu yüzden scrolling-layer'ın padding-top'ı 50vh olmalı (zaten CSS'de var).
+            // Ekranın ortası (50vh)
+            // Biz metnin başlangıç noktasını tam ortaya getirmek istiyoruz.
+            // padding-top: 50vh
+            // Odak bandının yüksekliği önemli değil, çünkü o da ortada (50vh - h/2)
+            // Metin elemanı (div) da ortalanmalı.
+            // Basitçe: padding-top = 50vh.
+            const pt = '50vh';
+            els.container.style.paddingTop = pt;
+            if(state.childWindow) state.childWindow.document.getElementById('prompter-text-container').style.paddingTop = pt;
         }
 
         function toggleMirror() {
             state.isMirrored = !state.isMirrored;
             const cls = state.isMirrored ? 'mirror-x' : '';
-            els.scrollingLayer.className = cls;
+            els.container.className = `no-scrollbar select-none ${cls}`;
             document.getElementById('mirror-btn').textContent = state.isMirrored ? "Ayna: AÇIK" : "Ayna: Normal";
-            if(state.childWindow) state.childWindow.document.getElementById('scrolling-layer').className = cls;
+            if(state.childWindow) state.childWindow.document.getElementById('prompter-text-container').className = els.container.className;
         }
         function toggleTopBar() {
             state.isTopBarVisible = !state.isTopBarVisible;
@@ -396,43 +429,37 @@ Bir hikâye anlatmaya hazır mısın?
             const text = els.source.value.trim();
             if(!text) return alert("Metin girin!");
             
-            els.scrollingLayer.innerHTML = ''; state.words = []; state.cleanText = [];
+            els.container.innerHTML = ''; state.words = []; state.cleanText = [];
             
-            // Paragraph detection for PageUp/Down
+            // Paragraf yapısını koru
             const paragraphs = text.split('\n');
-            let globalWordIndex = 0;
-
             paragraphs.forEach(para => {
                 if(para.trim() === '') {
                      const br = document.createElement('br');
-                     els.scrollingLayer.appendChild(br);
+                     els.container.appendChild(br);
                      return;
                 }
                 const div = document.createElement('div');
-                // Add data-index for paragraph jumping logic
-                div.dataset.startIndex = globalWordIndex;
+                // Satır aralığı için class
                 
                 const words = para.split(/\s+/);
                 words.forEach(raw => {
                     const span = document.createElement('span');
                     span.textContent = raw + ' ';
                     span.className = 'prompter-word';
-                    // Store word index
-                    span.dataset.index = globalWordIndex;
                     div.appendChild(span);
                     state.words.push(span);
                     state.cleanText.push(raw.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()"']/g,""));
-                    globalWordIndex++;
                 });
-                els.scrollingLayer.appendChild(div);
+                els.container.appendChild(div);
             });
 
             els.prompterView.style.display = 'block';
-            resetTimer(); 
+            updatePadding(); resetTimer(); 
             if(state.childWindow && !state.childWindow.closed) syncChildContent();
             
             state.currentY = 0; state.targetY = 0; state.scrollSpeed = 0;
-            els.scrollingLayer.style.transform = `translateY(0px)`;
+            els.container.scrollTop = 0;
             
             requestAnimationFrame(physicsLoop);
             checkFocusLock();
@@ -447,64 +474,55 @@ Bir hikâye anlatmaya hazır mısın?
 
         function resetPrompter() {
             state.currentY = 0; state.targetY = 0; state.scrollSpeed = 0; state.isPlaying = false;
-            els.scrollingLayer.style.transform = `translateY(0px)`;
+            els.container.scrollTop = 0;
             document.querySelectorAll('.voice-active').forEach(el => el.classList.remove('voice-active'));
             updatePlayBtn(); resetTimer();
-            if(state.childWindow) state.childWindow.document.getElementById('scrolling-layer').style.transform = `translateY(0px)`;
+            if(state.childWindow) state.childWindow.document.getElementById('prompter-text-container').scrollTop = 0;
         }
 
-        // === PHYSICS ENGINE V2 (DAMPING) ===
+        // === PHYSICS ENGINE V3 (CENTER LOCK) ===
         function physicsLoop() {
             if(els.prompterView.style.display === 'none') return;
 
-            // 1. MANUEL MOD (SABİT HIZ)
+            // 1. MANUEL MOD (DIRECT)
             if(!state.isVoiceMode && state.isPlaying && state.scrollSpeed !== 0) {
                 state.targetY += state.scrollSpeed;
-                // Manuel modda gecikme olmasın, direkt uygula
-                state.currentY = state.targetY; 
+                state.currentY = state.targetY;
             }
 
-            // 2. VOICE MOD (PHYSICS)
+            // 2. VOICE MOD (CENTER PULL)
             if(state.isVoiceMode) {
-                // currentY -> targetY
                 const diff = state.targetY - state.currentY;
-                if(Math.abs(diff) > 0.5) {
-                    // Sürtünme katsayısı (0.05 = çok yumuşak, 0.1 = orta)
-                    state.currentY += diff * 0.08;
+                // Yumuşak takip (Lerp)
+                if(Math.abs(diff) > 1) {
+                    state.currentY += diff * 0.05;
                 }
             }
 
-            // Uygula (Eksi yön yukarı kaydırır)
-            const transform = `translateY(-${state.currentY}px)`;
-            els.scrollingLayer.style.transform = transform;
+            els.container.scrollTop = state.currentY;
             
             if(state.childWindow && !state.childWindow.closed) {
-                state.childWindow.document.getElementById('scrolling-layer').style.transform = transform;
+                state.childWindow.document.getElementById('prompter-text-container').scrollTop = state.currentY;
             }
 
             checkFocusLock();
             requestAnimationFrame(physicsLoop);
         }
 
-        // === FOCUS LOCK ===
         function checkFocusLock() {
-            // Get current scroll position relative to center
-            // Since we use transform, we calculate offset
+            // EKRANIN ORTASI
             const center = window.innerHeight / 2;
             const focusH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--focus-height'));
+            const viewTop = els.container.scrollTop;
             
-            // Optimize: Only check visible range? 
-            // For now simply loop active words.
-            // We need element position relative to VIEWPORT.
-            // element.getBoundingClientRect().top gives exactly that.
-            
-            // Optimization: Check only every 5th word to save CPU? 
-            // No, standard loop is fine for <2000 words.
+            // Sadece görünür kelimeleri tara
+            // Kelimenin ortası, ekranın ortasına (center) yakın mı?
+            // Kelimenin Y konumu (viewport relative) = el.getBoundingClientRect().top
             
             const words = document.getElementsByClassName('prompter-word');
             for(let w of words) {
                 const rect = w.getBoundingClientRect();
-                // If off screen, skip
+                // Ekran dışındaysa geç
                 if(rect.bottom < 0 || rect.top > window.innerHeight) continue;
                 
                 const elCenter = rect.top + (rect.height/2);
@@ -518,7 +536,7 @@ Bir hikâye anlatmaya hazır mısın?
             }
         }
 
-        // === VOICE LOGIC ===
+        // === VOICE LOGIC (CENTER TARGETING) ===
         function toggleMicrophone() {
             if(!state.recognition) initSpeech();
             state.isVoiceMode = !state.isVoiceMode;
@@ -527,7 +545,9 @@ Bir hikâye anlatmaya hazır mısın?
                 state.isPlaying = false; updatePlayBtn();
                 try { state.recognition.start(); } catch(e){}
                 updateMicUI(true); updateModeText("SESLİ AKIŞ"); startTimerLogic();
-                state.targetY = state.currentY; // Reset
+                // Mevcut konumu hedef yap (zıplama yok)
+                state.targetY = els.container.scrollTop;
+                state.currentY = els.container.scrollTop;
             } else {
                 state.recognition.stop(); updateMicUI(false); updateModeText("MANUEL"); stopTimerLogic();
             }
@@ -553,51 +573,41 @@ Bir hikâye anlatmaya hazır mısın?
             const lastWord = words[words.length - 1];
             if(!lastWord || lastWord.length < 2) return;
 
-            const searchLimit = Math.min(state.currentIndex + 20, state.cleanText.length);
-            for(let i = Math.max(0, state.currentIndex - 5); i < searchLimit; i++) {
+            // Look-behind bias (Geriye dönük kontrol)
+            // Önceki 10 kelimeye de bak (düzeltme için)
+            const start = Math.max(0, state.currentIndex - 10);
+            const limit = Math.min(state.currentIndex + 20, state.cleanText.length);
+            
+            for(let i = start; i < limit; i++) {
                 if(state.cleanText[i] === lastWord) {
-                    setPhysicsTarget(i);
+                    setCenterTarget(i);
                     state.currentIndex = i + 1;
                     return; 
                 }
             }
         }
 
-        function setPhysicsTarget(index) {
+        function setCenterTarget(index) {
             document.querySelectorAll('.voice-active').forEach(el => el.classList.remove('voice-active'));
             if(state.words[index]) {
                 const el = state.words[index];
                 el.classList.add('voice-active');
                 
-                // TARGET HESAPLAMA
-                // Elementin konteyner içindeki saf pozisyonunu bul (offsetTop)
-                // Bunu ekranın ortasına getirmek için gereken Y değerini hesapla.
+                // === CRITICAL: CENTER CALCULATION ===
+                // Kelimenin ortasını ekranın ortasına getir.
+                // scrollTop = el.offsetTop - (ScreenHeight/2) + (ElementHeight/2)
                 
-                // offsetTop: Elementin parent'a (scrolling-layer) göre konumu.
-                // scrolling-layer'ın padding-top'ı 50vh.
-                // Yani elementin 0. pikseli aslında 50vh aşağıda başlıyor.
-                // Biz transform: translateY(-VAL) yapıyoruz.
+                const elTop = el.offsetTop; // Konteyner içindeki konumu
+                const elH = el.offsetHeight;
+                const winH = window.innerHeight;
                 
-                // Hedeflenen kaydırma miktarı = Elementin tepesi
-                // Böylece element en tepeye (viewport 0) gelir.
-                // Ama biz ortaya gelsin istiyoruz.
-                // O zaman 50vh kadar daha az kaydıracağız? Hayır.
+                // container.scrollTop bu değere gitmeli
+                // padding-top 50vh olduğu için, offsetTop zaten aşağıdadır.
+                // Ama scrollTop, içeriğin ne kadar yukarı kaydığıdır.
+                // Eğer el.offsetTop = 50vh (ilk satır), scrollTop = 0 olmalı.
+                // Formül: Target = elTop - 50vh + (elH/2)
                 
-                // Basit düşünelim:
-                // currentY = 0 iken, ilk kelime tam ortada (padding sayesinde).
-                // İkinci kelime (diyelim 50px aşağıda). Onu ortaya getirmek için Y=50 olmalı.
-                // Yani targetY = element.offsetTop.
-                
-                // FAKAT: element.offsetTop parent'ın (paddingli) içine göre.
-                // padding-top 50vh olduğu için ilk elemanın offsetTop'ı 0 değil.
-                // Ancak CSS'de padding container'a değil, child'a verilmiş olabilir mi?
-                // Hayır, #scrolling-layer padding-top: 50vh.
-                // Bu durumda ilk elemanın offsetTop'ı 0'a yakındır (padding content box dışıdır).
-                // Ama offsetTop padding edge'e göredir. 
-                
-                // Düzeltme:
-                // Elementin offsetTop'ı direkt olarak kaydırma miktarıdır.
-                state.targetY = el.offsetTop;
+                state.targetY = elTop - (winH / 2) + (elH / 2);
             }
         }
 
@@ -614,7 +624,7 @@ Bir hikâye anlatmaya hazır mısın?
             if(state.isVoiceMode) return; 
             state.scrollSpeed += delta;
             state.isPlaying = state.scrollSpeed !== 0;
-            // Manuel modda targetY göreceli artar, resetlemeye gerek yok.
+            state.targetY = els.container.scrollTop;
             if(state.isPlaying) startTimerLogic(); else stopTimerLogic();
             updatePlayBtn();
             updateModeText(`HIZ: ${state.scrollSpeed.toFixed(1)}`);
@@ -647,27 +657,15 @@ Bir hikâye anlatmaya hazır mısın?
             if (!state.childWindow) return alert("Pop-up izni verin!");
             const styles = document.getElementsByTagName('style')[0].innerHTML;
             const tailwind = document.querySelector('script[src*="tailwindcss"]').outerHTML;
-            state.childWindow.document.write(`<html><head>${tailwind}<style>${styles} body{background:black;overflow:hidden;} #scrolling-layer{padding-top:50vh;}</style></head><body><div id="prompter-text-container"><div id="scrolling-layer"></div></div></body></html>`);
+            state.childWindow.document.write(`<html><head>${tailwind}<style>${styles} body{background:black;overflow:hidden;} #prompter-text-container{padding-bottom:50vh;}</style></head><body><div id="prompter-text-container" class="${els.container.className}"></div></body></html>`);
             state.childWindow.document.close();
             setTimeout(syncChildContent, 500);
         }
         function syncChildContent() { 
             if(state.childWindow && !state.childWindow.closed) {
-                state.childWindow.document.getElementById('scrolling-layer').innerHTML = els.scrollingLayer.innerHTML;
+                state.childWindow.document.getElementById('prompter-text-container').innerHTML = els.container.innerHTML;
+                updatePadding();
             }
-        }
-
-        // === NAVIGATION UTILS ===
-        function jumpToStart() { state.targetY = 0; state.currentY = 0; }
-        function jumpToEnd() { 
-            const last = state.words[state.words.length-1];
-            if(last) state.targetY = last.offsetTop;
-        }
-        function jumpPage(dir) {
-            // Yaklaşık bir ekran boyu
-            state.targetY += (dir * window.innerHeight * 0.8);
-            // Limitler
-            if(state.targetY < 0) state.targetY = 0;
         }
 
         // INPUTS
@@ -676,6 +674,7 @@ Bir hikâye anlatmaya hazır mısın?
             const sensitivity = 0.2;
             if(e.deltaY > 0) state.scrollSpeed += sensitivity; else state.scrollSpeed -= sensitivity;
             state.isPlaying = state.scrollSpeed !== 0;
+            state.targetY = els.container.scrollTop;
             if(state.isPlaying) startTimerLogic(); else stopTimerLogic();
             updatePlayBtn(); updateModeText(`HIZ: ${state.scrollSpeed.toFixed(1)}`);
         });
@@ -683,20 +682,30 @@ Bir hikâye anlatmaya hazır mısın?
         document.addEventListener('keydown', (e) => {
             if(state.isSearching) return;
             if (els.prompterView.style.display === 'none') return;
-            
             if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); changeSpeed(0.5); }
             if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); changeSpeed(-0.5); }
             if (e.code === 'Enter') { e.preventDefault(); toggleManualPlay(); }
             if (e.code === 'Space') { e.preventDefault(); toggleMicrophone(); }
             if (e.code === 'Escape') stopPrompter();
             
-            // YENİ KISAYOLLAR
-            if (e.code === 'Home') { e.preventDefault(); jumpToStart(); }
-            if (e.code === 'End') { e.preventDefault(); jumpToEnd(); }
-            if (e.code === 'PageUp') { e.preventDefault(); jumpPage(-1); }
-            if (e.code === 'PageDown') { e.preventDefault(); jumpPage(1); }
+            // HARD CODED NAVIGATION
+            if (e.code === 'Home') { e.preventDefault(); resetPrompter(); }
+            if (e.code === 'End') { 
+                e.preventDefault(); 
+                els.container.scrollTop = els.container.scrollHeight; 
+                state.targetY = els.container.scrollTop;
+            }
+            if (e.code === 'PageUp') {
+                e.preventDefault();
+                els.container.scrollTop -= window.innerHeight * 0.8;
+                state.targetY = els.container.scrollTop;
+            }
+            if (e.code === 'PageDown') {
+                e.preventDefault();
+                els.container.scrollTop += window.innerHeight * 0.8;
+                state.targetY = els.container.scrollTop;
+            }
 
-            // Font/Odak Kısayolları
             if (e.key === '+' || e.code === 'NumpadAdd') { 
                 let h = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--focus-height')) + 20;
                 document.querySelector('input[oninput="updateFocusHeight(this.value)"]').value = h; updateFocusHeight(h);
@@ -704,16 +713,6 @@ Bir hikâye anlatmaya hazır mısın?
             if (e.key === '-' || e.code === 'NumpadSubtract') { 
                 let h = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--focus-height')) - 20;
                 document.querySelector('input[oninput="updateFocusHeight(this.value)"]').value = h; updateFocusHeight(h);
-            }
-            if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
-                e.preventDefault();
-                let v = parseFloat(document.getElementById('font-val').textContent) - 0.5;
-                if(v >= 2) { document.querySelector('input[oninput="updateFont(this.value)"]').value = v; updateFont(v); }
-            }
-            if (e.code === 'KeyD' || e.code === 'ArrowRight') {
-                e.preventDefault();
-                let v = parseFloat(document.getElementById('font-val').textContent) + 0.5;
-                if(v <= 12) { document.querySelector('input[oninput="updateFont(this.value)"]').value = v; updateFont(v); }
             }
         });
     </script>
